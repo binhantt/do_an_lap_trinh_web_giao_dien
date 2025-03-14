@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginAdmin, checkAuthState } from '../redux/auth/authAPI';
+import { loginAdmin, checkAuthState } from '../../redux/auth/authAPI';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Alert, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';

@@ -1,6 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body{
-  background: white;
+
+/* Custom utility classes */
+.dark-bg-text {
+  @apply text-white;
+}
+
+.dark-bg-icon {
+  @apply text-white;
+}
+
+/* Dark background styles */
+.dark-bg {
+  @apply bg-[#001529] text-white;
+}
+
+/* Light background styles */
+.light-bg {
+  @apply bg-white text-gray-800;
 }

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Layout } from 'antd';
 import { useSelector } from 'react-redux';
-import Navbar from '../layout/admin/Navbar';
-import Sidebar from '../layout/admin/Sidebar';
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
 const { Content } = Layout;
 
