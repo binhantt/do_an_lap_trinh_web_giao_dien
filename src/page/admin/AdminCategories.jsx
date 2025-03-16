@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Popconfirm, Row, Col, Statistic } from 'antd';
+import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Popconfirm, Row, Col } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, AppstoreOutlined, ShoppingOutlined, FileSearchOutlined } from '@ant-design/icons';
 import AdminLayout from '../../components/layout/admin/AdminLayout';
 import { useDispatch, useSelector } from 'react-redux';
@@ -93,6 +92,7 @@ const AdminCategories = () => {
             dataIndex: 'description',
             key: 'description',
             ellipsis: true,
+            width: '30%',
         },
         {
             title: 'Created At',
@@ -111,8 +111,9 @@ const AdminCategories = () => {
         {
             title: 'Actions',
             key: 'actions',
+            width: 120,
             render: (_, record) => (
-                <Space size="middle">
+                <Space size="small">
                     <Button 
                         type="primary" 
                         icon={<EditOutlined />} 
@@ -139,9 +140,8 @@ const AdminCategories = () => {
 
     return(
         <AdminLayout>
-            {/* Summary Cards */}
-            <div className="pb-4">
-                <Row gutter={[16, 16]}>
+            <div className="pb-4 ">
+                <Row gutter={[5, 5]}>
                     {[
                         {
                             icon: <AppstoreOutlined />,
@@ -171,7 +171,7 @@ const AdminCategories = () => {
                             tooltip: "Number of category searches this month"
                         }
                     ].map((card, index) => (
-                        <Col xs={24} sm={12} md={8} key={index}>
+                        <Col xs={24} sm={3} md={8} key={index} >
                             <StatCard 
                                 icon={card.icon}
                                 title={card.title}
@@ -187,17 +187,26 @@ const AdminCategories = () => {
                 </Row>
             </div>
             
-            <div className="px-6 pb-6">
+            <div className=" pb-6">
                 <Card>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px'  ,}}>
-                        <Title level={4}>Categories Management</Title>
-                        <Space>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        marginBottom: '16px',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        gap: '1px'
+                    }}>
+                        <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
+                            Categories Management
+                        </Title>
+                        <Space wrap>
                             <Input
                                 placeholder="Search categories"
                                 prefix={<SearchOutlined />}
                                 value={searchText}
                                 onChange={e => setSearchText(e.target.value)}
-                                style={{ width: 250 }}
+                                style={{ width: 200 }}
                             />
                             <Button 
                                 type="primary" 
@@ -209,19 +218,25 @@ const AdminCategories = () => {
                         </Space>
                     </div>
 
-                    <Table
-                        columns={columns}
-                        dataSource={filteredCategories}
-                        rowKey="id"
-                        loading={loading}
-                        pagination={{ pageSize: 10 }}
-                    />
+                    <div className="table-responsive">
+                        <Table
+                            columns={columns}
+                            dataSource={filteredCategories}
+                            rowKey="id"
+                            loading={loading}
+                            pagination={{ pageSize: 10 }}
+                            scroll={{ x: 800 }}
+                            size="middle"
+                        />
+                    </div>
 
                     <Modal
                         title={editingCategory ? "Edit Category" : "Add New Category"}
                         open={isModalVisible}
                         onCancel={() => setIsModalVisible(false)}
                         footer={null}
+                        width={520}
+                        centered
                     >
                         <Form
                             form={form}
@@ -242,7 +257,7 @@ const AdminCategories = () => {
                             >
                                 <Input.TextArea rows={4} placeholder="Enter category description" />
                             </Form.Item>
-                            <Form.Item style={{ textAlign: 'right' }}>
+                            <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
                                 <Space>
                                     <Button onClick={() => setIsModalVisible(false)}>
                                         Cancel

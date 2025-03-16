@@ -13,11 +13,8 @@ import {
 export const fetchCategories = () => async (dispatch) => {
   try {
     dispatch(fetchCategoriesStart());
-    
-    // Make API call to get categories
     const response = await axios.get(`${api.api}/api/admin/v1/category`);
-    
-    // Check if request was successful
+
     if (response.data && response.data.success) {
       dispatch(fetchCategoriesSuccess(response.data.data.categories));
       return response.data.data.categories;
@@ -36,7 +33,6 @@ export const fetchCategories = () => async (dispatch) => {
   }
 };
 
-// Create a new category
 export const createCategory = (categoryData) => async (dispatch) => {
   try {
     const response = await axios.post(`${api.api}/api/admin/v1/category`, categoryData);
@@ -56,8 +52,6 @@ export const createCategory = (categoryData) => async (dispatch) => {
     return null;
   }
 };
-
-// Update an existing category
 export const updateCategory = (id, categoryData) => async (dispatch) => {
   try {
     const response = await axios.put(`${api.api}/api/admin/v1/category/${id}`, categoryData);
@@ -72,7 +66,6 @@ export const updateCategory = (id, categoryData) => async (dispatch) => {
       error.response?.data?.message || 
       error.message || 
       'Failed to update category. Please try again.';
-    
     console.error(errorMessage);
     return null;
   }

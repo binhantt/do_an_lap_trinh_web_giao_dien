@@ -44,7 +44,7 @@ const StatCard = ({
           )}
         </div>
         {icon && (
-          <div className="flex items-center justify-center w-12 h-12 rounded-full" 
+          <div className="flex items-center justify-center w-5 h-12 rounded-full" 
                style={{ backgroundColor: `${color}20` }}>
             <span className="text-2xl" style={{ color }}>{icon}</span>
           </div>

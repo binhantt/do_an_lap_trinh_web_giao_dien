@@ -1,25 +1,121 @@
 import React from 'react';
 import { Layout, Menu, Typography } from 'antd';
-import {
-  DashboardOutlined,
-  UserOutlined,
-  AppstoreOutlined,
-  FileOutlined,
-  SettingOutlined,
-  ShoppingCartOutlined,
-  ProjectOutlined,
-  TeamOutlined,
-  BarChartOutlined,
-  MailOutlined,
-  BellOutlined,
-  CalendarOutlined
+import { 
+  DashboardOutlined, 
+  UserOutlined, 
+  AppstoreOutlined, 
+  ShoppingCartOutlined, 
+  SolutionOutlined, 
+  ProjectOutlined, 
+  FileOutlined, 
+  SettingOutlined 
 } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const { Sider } = Layout;
 const { Title } = Typography;
 
 const Sidebar = ({ collapsed }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
+  // Menu data structure
+  const menuItems = [
+    {
+      key: 'dashboard',
+      icon: <DashboardOutlined />,
+      label: 'Dashboard',
+      path: '/admin/dashboard',
+      type: 'item'
+    },
+    {
+      type: 'divider'
+    },
+    {
+      type: 'group',
+      title: 'Quản lý bán hàng',
+      items: [
+        {
+          key: 'products',
+          icon: <ProjectOutlined />,
+          label: 'Sản phẩm',
+          path: '/admin/dashboard/products',
+          type: 'item'
+        },
+        {
+          key: 'categories',
+          icon: <AppstoreOutlined />,
+          label: 'Danh mục',
+          path: '/admin/dashboard/categories',
+          type: 'item'
+        },
+        {
+          key: 'orders',
+          icon: <ShoppingCartOutlined />,
+          label: 'Đơn hàng',
+          path: '/admin/dashboard/orders',
+          type: 'item'
+        },
+        {
+          key: 'customers',
+          icon: <SolutionOutlined />,
+          label: 'Khách hàng',
+          path: '/admin/dashboard/customers',
+          type: 'item'
+        }
+      ]
+    },
+    {
+      type: 'divider'
+    },
+    {
+      type: 'group',
+      title: 'Quản lý hệ thống',
+      items: [
+        {
+          key: 'staff',
+          icon: <UserOutlined />,
+          label: 'Nhân viên',
+          path: '/admin/staff',
+          type: 'item'
+        },
+        {
+          key: 'settings',
+          icon: <SettingOutlined />,
+          label: 'Cấu hình',
+          path: '/admin/settings',
+          type: 'item'
+        }
+      ]
+    }
+  ];
+
+  // Function to render menu items
+  const renderMenuItems = (items) => {
+    return items.map(item => {
+      if (item.type === 'divider') {
+        return <Menu.Divider key={`divider-${Math.random()}`} className="my-2" />;
+      } else if (item.type === 'group') {
+        return (
+          <Menu.ItemGroup 
+            key={`group-${item.title}`} 
+            title={item.title} 
+            className="px-4 text-xs font-medium text-gray-400"
+          >
+            {renderMenuItems(item.items)}
+          </Menu.ItemGroup>
+        );
+      } else if (item.type === 'item') {
+        return (
+          <Menu.Item key={item.key} icon={item.icon} className="rounded-md mx-2">
+            <Link to={item.path}>{item.label}</Link>
+          </Menu.Item>
+        );
+      }
+      return null;
+    });
+  };
+
   return (
     <Sider 
       trigger={null} 
@@ -42,38 +138,11 @@ const Sidebar = ({ collapsed }) => {
       
       <Menu
         mode="inline"
-        defaultSelectedKeys={['dashboard']}
+        defaultSelectedKeys={[currentPath.split('/').pop() || 'dashboard']}
         style={{ borderRight: 0, background: '#ffffff' }}
         className="border-0 mt-4"
       >
-        <Menu.Item key="dashboard" icon={<DashboardOutlined />} className="rounded-md mx-2">
-          <Link to="/admin/dashboard">Dashboard</Link>
-        </Menu.Item>
-        
-        <Menu.Divider className="my-2" />
-        
-        <Menu.ItemGroup title="Management" className="px-4 text-xs font-medium text-gray-400">
-          <Menu.Item key="users" icon={<UserOutlined />} className="rounded-md mx-2">
-            <Link to="/admin/users">Users</Link>
-          </Menu.Item>
-          <Menu.Item key="categories" icon={<AppstoreOutlined />} className="rounded-md mx-2">
-            <Link to="/admin/dashboard/categories">Categories</Link>
-          </Menu.Item>
-          <Menu.Item key="game" icon={<ProjectOutlined />} className="rounded-md mx-2">
-            <Link to="/admin/games">Game</Link>
-          </Menu.Item>
-          <Menu.Item key="packages" icon={<FileOutlined />} className="rounded-md mx-2">
-            <Link to="/admin/packages">Packages</Link>
-          </Menu.Item>
-        </Menu.ItemGroup>
-        
-        <Menu.Divider className="my-2" />
-        
-        <Menu.ItemGroup title="System" className="px-4 text-xs font-medium text-gray-400">
-          <Menu.Item key="settings" icon={<SettingOutlined />} className="rounded-md mx-2">
-            <Link to="/admin/settings">Settings</Link>
-          </Menu.Item>
-        </Menu.ItemGroup>
+        {renderMenuItems(menuItems)}
       </Menu>
     </Sider>
   );

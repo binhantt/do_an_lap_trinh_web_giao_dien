@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginAdmin, checkAuthState } from '../../redux/auth/authAPI';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, Alert, Typography } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Alert, Typography, Divider, Spin } from 'antd';
+import { UserOutlined, LockOutlined, ShopOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const AdminLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [formSubmitted, setFormSubmitted] = useState(false);
   
   const { isAuthenticated, isLoading, error } = useSelector((state) => state.auth);
   
@@ -30,6 +31,7 @@ const AdminLogin = () => {
   }, [isAuthenticated, navigate]);
   
   const handleSubmit = async (values) => {
+    setFormSubmitted(true);
     try {
       const result = await dispatch(loginAdmin({ 
         email: values.email, 
@@ -42,22 +44,44 @@ const AdminLogin = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
+    } finally {
+      setFormSubmitted(false);
     }
   };
   
+  if (isAuthenticated && isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <Spin size="large" tip="Redirecting to dashboard..." />
+      </div>
+    );
+  }
+  
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <Card className="w-96 shadow-md">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50">
+      <Card 
+        className="w-96 shadow-lg rounded-lg overflow-hidden"
+        bordered={false}
+      >
         <div className="text-center mb-6">
-          <Title level={2}>Admin Login</Title>
+          <div className="flex justify-center mb-4">
+            <div className="bg-blue-600 text-white p-3 rounded-full">
+              <ShopOutlined style={{ fontSize: '28px' }} />
+            </div>
+          </div>
+          <Title level={2} className="m-0">Admin Portal</Title>
+          <Text type="secondary">Sign in to manage your store</Text>
         </div>
+        
+        <Divider className="my-4" />
         
         {error && (
           <Alert
-            message={error}
+            message="Authentication Failed"
+            description={error}
             type="error"
             showIcon
-            className="mb-4"
+            className="mb-6"
           />
         )}
         
@@ -66,41 +90,54 @@ const AdminLogin = () => {
           initialValues={{ remember: true }}
           onFinish={handleSubmit}
           layout="vertical"
+          size="large"
         >
           <Form.Item
             name="email"
-            rules={[{ required: true, message: 'Please input your email!' }]}
+            rules={[
+              { required: true, message: 'Please input your email!' },
+              { type: 'email', message: 'Please enter a valid email address' }
+            ]}
           >
             <Input 
-              prefix={<UserOutlined className="site-form-item-icon" />} 
+              prefix={<UserOutlined className="site-form-item-icon text-gray-400" />} 
               placeholder="Email" 
-              size="large"
+              className="py-2"
             />
           </Form.Item>
           
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
+            rules={[
+              { required: true, message: 'Please input your password!' },
+              { min: 6, message: 'Password must be at least 6 characters' }
+            ]}
           >
             <Input.Password
-              prefix={<LockOutlined className="site-form-item-icon" />}
+              prefix={<LockOutlined className="site-form-item-icon text-gray-400" />}
               placeholder="Password"
-              size="large"
+              className="py-2"
             />
           </Form.Item>
           
-          <Form.Item>
+          <Form.Item className="mb-2">
             <Button 
               type="primary" 
               htmlType="submit" 
-              loading={isLoading}
-              className="w-full"
-              size="large"
+              loading={isLoading || formSubmitted}
+              className="w-full h-12 rounded-md font-medium text-base"
+              style={{ background: '#1890ff' }}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading || formSubmitted ? 'Signing in...' : 'Sign In'}
             </Button>
           </Form.Item>
         </Form>
+        
+        <div className="text-center mt-4">
+          <Text type="secondary" className="text-sm">
+            © {new Date().getFullYear()} Your Company Name. All rights reserved.
+          </Text>
+        </div>
       </Card>
     </div>
   );

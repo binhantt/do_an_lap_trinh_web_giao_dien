@@ -6,6 +6,8 @@ import ProtectedRoute from '../components/layout/Protected';
 import AdminLogin from '../page/admin/AdminLogin';
 import AdminDashboard from '../page/admin/AdminDashboard';
 import AdminCategories from '../page/admin/AdminCategories';
+import AdminUsers from '../page/admin/AdminUsers';
+import AdminOrders from '../page/admin/AdminOrders';
 
 const AdminRouter = () => {
   const dispatch = useDispatch();
@@ -17,16 +19,12 @@ const AdminRouter = () => {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        
-        {/* Protected admin routes */}
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/dashboard/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
-        
-        {/* Redirects */}
-        <Route path="/" element={<Navigate to="/admin/login" />} />
+        <Route path='/admin/dashboard/orders' element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+        <Route path='/admin/dashboard/customers' element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
