@@ -1,109 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Popconfirm, Row, Col, Select, Pagination, Tooltip } from 'antd';
-import { EditOutlined, DeleteOutlined, SearchOutlined, UserOutlined, TeamOutlined, UserSwitchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Popconfirm, Row, Col, Select } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UserOutlined, TeamOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import AdminLayout from '../../components/layout/admin/AdminLayout';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, updateUser, deleteUser } from '../../redux/user/userAPI';
+import { fetchUsers, createUser, updateUser, deleteUser } from '../../redux/user/userAPI';
 import StatCard from '../../components/base/StatCard';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
 const AdminUsers = () => {
     const dispatch = useDispatch();
-    const usersState = useSelector(state => state.user) || { users: [], loading: false };
+    const usersState = useSelector(state => state.users) || { users: [], loading: false };
     const { users, loading } = usersState;
     
     // Stats for the dashboard
-    // Add debugging to check the users data
-    useEffect(() => {
-        console.log('Current users state:', users);
-    }, [users]);
+    const adminCount = users.filter(user => user.role === 'Admin').length;
+    const customerCount = users.filter(user => user.role === 'Customer').length;
     
-    const adminCount = users?.filter(user => user?.role === 'Admin')?.length || 0;
-    const customerCount = users?.filter(user => user?.role === 'Customer')?.length || 0;
-     
-    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [editingUser, setEditingUser] = useState(null);
     const [searchText, setSearchText] = useState('');
-    const [refreshKey, setRefreshKey] = useState(0); // Add refresh key for forcing re-fetch
 
     useEffect(() => {
-        console.log('Fetching users...');
-        dispatch(fetchUsers()).then(result => {
-            console.log('Users fetched:', result);
-        });
-    }, [dispatch, refreshKey]); // Add refreshKey dependency
+        dispatch(fetchUsers());
+    }, [dispatch]);
 
-    // Add refresh function
-    const handleRefresh = () => {
-        setRefreshKey(old => old + 1);
-    };
-
-    const showEditModal = (user) => {
+    const showModal = (user = null) => {
         setEditingUser(user);
-        form.setFieldsValue({
-            email: user.email,
-            fullName: user.fullName,
-            password: '', // Don't show the password for security
-            role: user.role
-        });
-        setIsEditModalVisible(true);
+        if (user) {
+            form.setFieldsValue({
+                email: user.email,
+                fullName: user.fullName,
+                password: '', // Don't show the password for security
+                role: user.role
+            });
+        } else {
+            form.resetFields();
+        }
+        setIsModalVisible(true);
     };
 
-    const handleUpdate = async (values) => {
-        if (!editingUser) return;
-        
-        try {
-            // Only include password if it's not empty
-            const userData = {...values};
-            if (!userData.password) {
-                delete userData.password;
-            }
-            
-            console.log('Updating user with data:', userData);
-            const result = await dispatch(updateUser(editingUser.id, userData));
-            
-            if (result.success) {
+    const handleSubmit = async (values) => {
+        if (editingUser) {
+            const result = await dispatch(updateUser(editingUser.id, values));
+            if (result) {
                 message.success('User updated successfully');
-                handleRefresh(); // Refresh the user list
             } else {
-                message.error(result.message || 'Failed to update user');
+                message.error('Failed to update user');
             }
-        } catch (error) {
-            console.error('Error updating user:', error);
-            message.error('An error occurred while updating the user');
+        } else {
+            const result = await dispatch(createUser(values));
+            if (result) {
+                message.success('User created successfully');
+            } else {
+                message.error('Failed to create user');
+            }
         }
-        
-        setIsEditModalVisible(false);
+        setIsModalVisible(false);
         form.resetFields();
     };
 
     const handleDelete = async (id) => {
-        try {
-            const result = await dispatch(deleteUser(id));
-            
-            if (result.success) {
-                message.success('User deleted successfully');
-                handleRefresh(); // Refresh the user list
-            } else {
-                message.error(result.message || 'Failed to delete user');
-            }
-        } catch (error) {
-            console.error('Error deleting user:', error);
-            message.error('An error occurred while deleting the user');
+        const result = await dispatch(deleteUser(id));
+        if (result) {
+            message.success('User deleted successfully');
+        } else {
+            message.error('Failed to delete user');
         }
     };
 
     const filteredUsers = users.filter(
         user => 
-            (user.email?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
-            (user.fullName?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
-            (user.role?.toLowerCase() || '').includes(searchText.toLowerCase())
+            user.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+            user.fullName?.toLowerCase().includes(searchText.toLowerCase()) ||
+            user.role?.toLowerCase().includes(searchText.toLowerCase())
     );
-
-    // Removed pagination logic
 
     const columns = [
         {
@@ -116,15 +89,13 @@ const AdminUsers = () => {
             title: 'Full Name',
             dataIndex: 'fullName',
             key: 'fullName',
-            sorter: (a, b) => (a.fullName || '').localeCompare(b.fullName || ''),
-            render: (text) => text || 'N/A',
+            sorter: (a, b) => a.fullName.localeCompare(b.fullName),
         },
         {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            sorter: (a, b) => (a.email || '').localeCompare(b.email || ''),
-            render: (text) => text || 'N/A',
+            sorter: (a, b) => a.email.localeCompare(b.email),
         },
         {
             title: 'Role',
@@ -135,7 +106,7 @@ const AdminUsers = () => {
                     color: role === 'Admin' ? '#1890ff' : '#52c41a',
                     fontWeight: 'bold'
                 }}>
-                    {role || 'N/A'}
+                    {role}
                 </span>
             ),
             filters: [
@@ -148,8 +119,15 @@ const AdminUsers = () => {
             title: 'Created At',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: text => text ? new Date(text).toLocaleDateString() : 'N/A',
-            sorter: (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
+            render: text => new Date(text).toLocaleDateString(),
+            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+        },
+        {
+            title: 'Updated At',
+            dataIndex: 'updatedAt',
+            key: 'updatedAt',
+            render: text => new Date(text).toLocaleDateString(),
+            sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
         },
         {
             title: 'Actions',
@@ -160,33 +138,21 @@ const AdminUsers = () => {
                         type="primary" 
                         icon={<EditOutlined />} 
                         size="small"
-                        onClick={() => showEditModal(record)}
+                        onClick={() => showModal(record)}
                     />
-                    {record.role !== 'Admin' ? (
-                        <Popconfirm
-                            title="Are you sure you want to delete this user?"
-                            onConfirm={() => handleDelete(record.id)}
-                            okText="Yes"
-                            cancelText="No"
-                        >
-                            <Button 
-                                type="primary" 
-                                danger 
-                                icon={<DeleteOutlined />} 
-                                size="small"
-                            />
-                        </Popconfirm>
-                    ) : (
-                        <Tooltip title="Admin users cannot be deleted">
-                            <Button 
-                                type="primary" 
-                                danger 
-                                icon={<DeleteOutlined />} 
-                                size="small"
-                                disabled
-                            />
-                        </Tooltip>
-                    )}
+                    <Popconfirm
+                        title="Are you sure you want to delete this user?"
+                        onConfirm={() => handleDelete(record.id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button 
+                            type="primary" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            size="small"
+                        />
+                    </Popconfirm>
                 </Space>
             ),
         },
@@ -195,7 +161,7 @@ const AdminUsers = () => {
     return(
         <AdminLayout>
             {/* Summary Cards */}
-            <div className="px-6 pt-6 overflow-hidden">
+            <div className="px-6 pt-6 pb-4">
                 <Row gutter={[16, 16]}>
                     {[
                         {
@@ -203,6 +169,8 @@ const AdminUsers = () => {
                             title: "Total Users",
                             value: users.length,
                             color: "#1890ff",
+                            change: 5,
+                            changeText: "more than last month",
                             tooltip: "Total number of registered users"
                         },
                         {
@@ -210,6 +178,8 @@ const AdminUsers = () => {
                             title: "Admins",
                             value: adminCount,
                             color: "#722ed1",
+                            change: 1,
+                            changeText: "more than last month",
                             tooltip: "Users with administrator privileges"
                         },
                         {
@@ -217,6 +187,8 @@ const AdminUsers = () => {
                             title: "Customers",
                             value: customerCount,
                             color: "#52c41a",
+                            change: 4,
+                            changeText: "more than last month",
                             tooltip: "Regular customer accounts"
                         }
                     ].map((card, index) => (
@@ -226,7 +198,10 @@ const AdminUsers = () => {
                                 title={card.title}
                                 value={card.value}
                                 color={card.color}
+                                change={card.change}
+                                changeText={card.changeText}
                                 tooltip={card.tooltip}
+                                onClick={() => message.info(`Viewing details for ${card.title}`)}
                             />
                         </Col>
                     ))}
@@ -235,8 +210,8 @@ const AdminUsers = () => {
             
             <div className="px-6 pb-6">
                 <Card>
-                    <div className="mb-4 flex justify-between items-center">
-                        <Title level={4}>User Management</Title>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                        <Title level={4}>Users Management</Title>
                         <Space>
                             <Input
                                 placeholder="Search users"
@@ -246,40 +221,33 @@ const AdminUsers = () => {
                                 style={{ width: 250 }}
                             />
                             <Button 
-                                onClick={handleRefresh} 
-                                loading={loading}
-                                icon={<ReloadOutlined />}
+                                type="primary" 
+                                icon={<PlusOutlined />}
+                                onClick={() => showModal()}
                             >
-                                Refresh
+                                Add User
                             </Button>
                         </Space>
                     </div>
 
                     <Table
                         columns={columns}
-                        dataSource={filteredUsers} // Use all filtered users instead of paginated users
+                        dataSource={filteredUsers}
                         rowKey="id"
                         loading={loading}
-                        pagination={false} // Keep pagination false to show all users
-                        locale={{ emptyText: loading ? 'Loading users...' : 'No users found' }}
+                        pagination={{ pageSize: 4 }} // Set pagination to 4 items per page
                     />
-                    
-                    {/* Removed pagination component */}
 
-                    {/* Edit User Modal */}
                     <Modal
-                        title="Edit User"
-                        open={isEditModalVisible}
-                        onCancel={() => {
-                            setIsEditModalVisible(false);
-                            form.resetFields();
-                        }}
+                        title={editingUser ? "Edit User" : "Add New User"}
+                        open={isModalVisible}
+                        onCancel={() => setIsModalVisible(false)}
                         footer={null}
                     >
                         <Form
                             form={form}
                             layout="vertical"
-                            onFinish={handleUpdate}
+                            onFinish={handleSubmit}
                         >
                             <Form.Item
                                 name="fullName"
@@ -305,14 +273,18 @@ const AdminUsers = () => {
                                 label="Password"
                                 rules={[
                                     { 
+                                        required: !editingUser, 
+                                        message: 'Please enter password' 
+                                    },
+                                    { 
                                         min: 6, 
                                         message: 'Password must be at least 6 characters',
-                                        warningOnly: true
+                                        warningOnly: !!editingUser
                                     }
                                 ]}
-                                tooltip="Leave blank to keep current password"
+                                tooltip={editingUser ? "Leave blank to keep current password" : ""}
                             >
-                                <Input.Password placeholder="Leave blank to keep current password" />
+                                <Input.Password placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"} />
                             </Form.Item>
                             
                             <Form.Item
@@ -328,14 +300,11 @@ const AdminUsers = () => {
                             
                             <Form.Item style={{ textAlign: 'right' }}>
                                 <Space>
-                                    <Button onClick={() => {
-                                        setIsEditModalVisible(false);
-                                        form.resetFields();
-                                    }}>
+                                    <Button onClick={() => setIsModalVisible(false)}>
                                         Cancel
                                     </Button>
                                     <Button type="primary" htmlType="submit">
-                                        Update
+                                        {editingUser ? 'Update' : 'Create'}
                                     </Button>
                                 </Space>
                             </Form.Item>

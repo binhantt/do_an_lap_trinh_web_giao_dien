@@ -4,7 +4,6 @@ import {
   fetchOrdersStart, 
   fetchOrdersSuccess, 
   fetchOrdersFailure,
-  createOrderSuccess,
   updateOrderSuccess,
   deleteOrderSuccess
 } from './orderSlice';
@@ -22,7 +21,7 @@ export const fetchOrders = () => async (dispatch) => {
       dispatch(fetchOrdersSuccess(orders));
       return orders;
     } else {
-      dispatch(fetchOrdersFailure(response.data.message || 'Failed to fetch orders'));
+      console.error('Failed to fetch orders:', response.data.message);
       return null;
     }
   } catch (error) {

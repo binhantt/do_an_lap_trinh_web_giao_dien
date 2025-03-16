@@ -15,6 +15,8 @@ const orderSlice = createSlice({
       state.error = null;
     },
     fetchOrdersSuccess: (state, action) => {
+     
+      console.log('action.payload:', action.payload);
       state.orders = action.payload;
       state.loading = false;
       state.error = null;

@@ -18,8 +18,9 @@ export const fetchUsers = () => async (dispatch) => {
     
     console.log('Fetch users response:', response.data);
     
-    if (response.data) {
-      const users = response.data.users || [];
+    if (response.data && response.data.success) {
+      // Correctly extract users from response.data.data.users
+      const users = response.data.data?.users || [];
       dispatch(fetchUsersSuccess(users));
       return users;
     } else {
