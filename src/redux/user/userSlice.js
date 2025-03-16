@@ -18,6 +18,7 @@ const userSlice = createSlice({
     fetchUsersSuccess(state, action) {
       state.loading = false;
       state.users = action.payload;
+      console.log(state.users);
     },
     fetchUsersFailure(state, action) {
       state.loading = false;

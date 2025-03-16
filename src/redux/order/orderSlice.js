@@ -3,38 +3,39 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   orders: [],
   loading: false,
-  error: null
+  error: null,
+  selectedOrder: null
 };
 
 const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
-    fetchOrdersStart: (state) => {
+    fetchOrdersStart(state) {
       state.loading = true;
       state.error = null;
     },
-    fetchOrdersSuccess: (state, action) => {
-     
-      console.log('action.payload:', action.payload);
-      state.orders = action.payload;
+    fetchOrdersSuccess(state, action) {
       state.loading = false;
-      state.error = null;
+      state.orders = action.payload;
     },
-    fetchOrdersFailure: (state, action) => {
+    fetchOrdersFailure(state, action) {
       state.loading = false;
       state.error = action.payload;
     },
-    createOrderSuccess: (state, action) => {
+    selectOrder(state, action) {
+      state.selectedOrder = action.payload;
+    },
+    createOrderSuccess(state, action) {
       state.orders.push(action.payload);
     },
-    updateOrderSuccess: (state, action) => {
+    updateOrderSuccess(state, action) {
       const index = state.orders.findIndex(order => order.id === action.payload.id);
       if (index !== -1) {
         state.orders[index] = action.payload;
       }
     },
-    deleteOrderSuccess: (state, action) => {
+    deleteOrderSuccess(state, action) {
       state.orders = state.orders.filter(order => order.id !== action.payload);
     }
   }
@@ -44,6 +45,7 @@ export const {
   fetchOrdersStart,
   fetchOrdersSuccess,
   fetchOrdersFailure,
+  selectOrder,
   createOrderSuccess,
   updateOrderSuccess,
   deleteOrderSuccess

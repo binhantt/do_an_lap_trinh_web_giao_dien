@@ -11,9 +11,17 @@ const { Title } = Typography;
 const AdminCategories = () => {
     const dispatch = useDispatch();
     const categoryState = useSelector(state => state.category) || { categories: [], loading: false };
-    const { categories, loading } = categoryState;
+    const { categories = [], loading } = categoryState; // Ensure categories is an array
     
-    // Mock data for products - replace with actual data from Redux store when available
+    // Convert category names to objects for table display
+    // Convert category names to objects for table display using actual database IDs
+    const categoryObjects = categories.map((category) => ({
+        id: category.id, // Use the actual ID from the database
+        name: category.name, // Ensure name is correctly extracted as a string
+        description: `Description for ${category.name}`, // Placeholder description
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }));
     const totalProducts = 156;
     const searchCount = 24;
     
@@ -44,6 +52,7 @@ const AdminCategories = () => {
             const result = await dispatch(updateCategory(editingCategory.id, values));
             if (result) {
                 message.success('Category updated successfully');
+                dispatch(fetchCategories()); // Refresh categories after update
             } else {
                 message.error('Failed to update category');
             }
@@ -51,6 +60,7 @@ const AdminCategories = () => {
             const result = await dispatch(createCategory(values));
             if (result) {
                 message.success('Category created successfully');
+                dispatch(fetchCategories()); // Refresh categories after creation
             } else {
                 message.error('Failed to create category');
             }
@@ -63,16 +73,23 @@ const AdminCategories = () => {
         const result = await dispatch(deleteCategory(id));
         if (result) {
             message.success('Category deleted successfully');
+            dispatch(fetchCategories()); // Refresh categories after deletion
         } else {
             message.error('Failed to delete category');
         }
     };
 
-    const filteredCategories = categories.filter(
+    // Ensure this declaration is unique
+    const filteredCategories = categoryObjects.filter(
         category => 
             category.name?.toLowerCase().includes(searchText.toLowerCase()) ||
             category.description?.toLowerCase().includes(searchText.toLowerCase())
     );
+
+    // Remove or rename any duplicate declarations of filteredCategories
+    // For example, if there's another declaration like this:
+    // const filteredCategories = someOtherLogic();
+    // Rename it to something else, e.g., filteredCategoriesByOtherLogic
 
     const columns = [
         {
@@ -122,7 +139,7 @@ const AdminCategories = () => {
                     />
                     <Popconfirm
                         title="Are you sure you want to delete this category?"
-                        onConfirm={() => handleDelete(record.id)}
+                        onConfirm={() => handleDelete(record.id)} // Use record.id from filteredCategories
                         okText="Yes"
                         cancelText="No"
                     >

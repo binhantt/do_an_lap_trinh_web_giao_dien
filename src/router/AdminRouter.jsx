@@ -8,6 +8,7 @@ import AdminDashboard from '../page/admin/AdminDashboard';
 import AdminCategories from '../page/admin/AdminCategories';
 import AdminUsers from '../page/admin/AdminUsers';
 import AdminOrders from '../page/admin/AdminOrders';
+import AdminProducts from '../page/admin/AdminProducts';
 
 const AdminRouter = () => {
   const dispatch = useDispatch();
@@ -24,6 +25,7 @@ const AdminRouter = () => {
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/dashboard/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
         <Route path='/admin/dashboard/orders' element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+        <Route path='/admin/dashboard/products' element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />
         <Route path='/admin/dashboard/customers' element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
       </Routes>
     </Router>

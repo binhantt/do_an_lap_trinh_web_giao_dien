@@ -3,7 +3,7 @@ import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Po
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import AdminLayout from '../../components/layout/admin/AdminLayout';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders } from '../../redux/order/orderAPI';
+import { fetchOrders, createOrder, updateOrder, deleteOrder } from '../../redux/order/orderAPI';
 import StatCard from '../../components/base/StatCard';
 
 const { Title } = Typography;
@@ -11,9 +11,12 @@ const { Option } = Select;
 
 const AdminOrders = () => {
     const dispatch = useDispatch();
-    const ordersState = useSelector(state => state.orders) || { orders: [], loading: false };
-    const { orders, loading } = ordersState;
-    
+    const ordersState = useSelector(state => state.order) || { orders: [], loading: false };
+    const { orders: rawOrders, loading } = ordersState;
+
+    // Extract orders from the nested structure
+    const orders = rawOrders || [];
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [editingOrder, setEditingOrder] = useState(null);
@@ -23,12 +26,21 @@ const AdminOrders = () => {
         dispatch(fetchOrders());
     }, [dispatch]);
 
+    console.log('Fetched orders:', orders); // Debug log
+
+    const filteredOrders = orders.filter(
+        order => 
+            order.id.toString().includes(searchText.toLowerCase()) ||
+            order.userName.toLowerCase().includes(searchText.toLowerCase()) ||
+            order.status.toLowerCase().includes(searchText.toLowerCase())
+    );
+
     const showModal = (order = null) => {
         setEditingOrder(order);
         if (order) {
             form.setFieldsValue({
-                orderId: order.orderId,
-                customerName: order.customerName,
+                orderId: order.id,
+                customerName: order.userName,
                 status: order.status,
                 totalAmount: order.totalAmount,
                 paymentMethod: order.paymentMethod,
@@ -70,26 +82,31 @@ const AdminOrders = () => {
             message.error('Failed to delete order');
         }
     };
-     console.log(orders);
-    const filteredOrders = orders.filter(
-        order => 
-            order.orderId?.toLowerCase().includes(searchText.toLowerCase()) ||
-            order.customerName?.toLowerCase().includes(searchText.toLowerCase()) ||
-            order.status?.toLowerCase().includes(searchText.toLowerCase())
-    );
 
     const columns = [
         {
             title: 'Order ID',
-            dataIndex: 'orderId',
-            key: 'orderId',
+            dataIndex: 'id',
+            key: 'id',
             width: 80,
         },
         {
-            title: 'Customer Name',
-            dataIndex: 'customerName',
-            key: 'customerName',
-            sorter: (a, b) => a.customerName.localeCompare(b.customerName),
+            title: 'User ID',
+            dataIndex: 'userId',
+            key: 'userId',
+            width: 80,
+        },
+        {
+            title: 'User Name',
+            dataIndex: 'userName',
+            key: 'userName',
+            width: 120,
+        },
+        {
+            title: 'Order Date',
+            dataIndex: 'orderDate',
+            key: 'orderDate',
+            render: text => new Date(text).toLocaleDateString(),
         },
         {
             title: 'Status',
@@ -171,9 +188,8 @@ const AdminOrders = () => {
         },
     ];
 
-    return(
+    return (
         <AdminLayout>
-            {/* Summary Cards */}
             <div className="px-6 pt-6 pb-4">
                 <Row gutter={[16, 16]}>
                     {/* Add StatCard components for orders if needed */}
@@ -207,7 +223,7 @@ const AdminOrders = () => {
                         dataSource={filteredOrders}
                         rowKey="id"
                         loading={loading}
-                        pagination={{ pageSize: 4 }} // Set pagination to 4 items per page
+                        pagination={{ pageSize: 4 }}
                     />
 
                     <Modal
@@ -221,83 +237,7 @@ const AdminOrders = () => {
                             layout="vertical"
                             onFinish={handleSubmit}
                         >
-                            <Form.Item
-                                name="orderId"
-                                label="Order ID"
-                                rules={[{ required: true, message: 'Please enter order ID' }]}
-                            >
-                                <Input placeholder="Enter order ID" />
-                            </Form.Item>
-                            
-                            <Form.Item
-                                name="customerName"
-                                label="Customer Name"
-                                rules={[{ required: true, message: 'Please enter customer name' }]}
-                            >
-                                <Input placeholder="Enter customer name" />
-                            </Form.Item>
-                            
-                            <Form.Item
-                                name="status"
-                                label="Status"
-                                rules={[{ required: true, message: 'Please select a status' }]}
-                            >
-                                <Select placeholder="Select a status">
-                                    <Option value="Completed">Completed</Option>
-                                    <Option value="Pending">Pending</Option>
-                                </Select>
-                            </Form.Item>
-
-                            <Form.Item
-                                name="totalAmount"
-                                label="Total Amount"
-                                rules={[{ required: true, message: 'Please enter total amount' }]}
-                            >
-                                <Input placeholder="Enter total amount" type="number" />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="paymentMethod"
-                                label="Payment Method"
-                                rules={[{ required: true, message: 'Please enter payment method' }]}
-                            >
-                                <Input placeholder="Enter payment method" />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="paymentStatus"
-                                label="Payment Status"
-                                rules={[{ required: true, message: 'Please enter payment status' }]}
-                            >
-                                <Input placeholder="Enter payment status" />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="shippingAddress"
-                                label="Shipping Address"
-                                rules={[{ required: true, message: 'Please enter shipping address' }]}
-                            >
-                                <Input placeholder="Enter shipping address" />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="phoneNumber"
-                                label="Phone Number"
-                                rules={[{ required: true, message: 'Please enter phone number' }]}
-                            >
-                                <Input placeholder="Enter phone number" />
-                            </Form.Item>
-                            
-                            <Form.Item style={{ textAlign: 'right' }}>
-                                <Space>
-                                    <Button onClick={() => setIsModalVisible(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button type="primary" htmlType="submit">
-                                        {editingOrder ? 'Update' : 'Create'}
-                                    </Button>
-                                </Space>
-                            </Form.Item>
+                            {/* Form Items */}
                         </Form>
                     </Modal>
                 </Card>

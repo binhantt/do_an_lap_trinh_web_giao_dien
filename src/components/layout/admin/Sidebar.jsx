@@ -68,26 +68,7 @@ const Sidebar = ({ collapsed }) => {
     {
       type: 'divider'
     },
-    {
-      type: 'group',
-      title: 'Quản lý hệ thống',
-      items: [
-        {
-          key: 'staff',
-          icon: <UserOutlined />,
-          label: 'Nhân viên',
-          path: '/admin/staff',
-          type: 'item'
-        },
-        {
-          key: 'settings',
-          icon: <SettingOutlined />,
-          label: 'Cấu hình',
-          path: '/admin/settings',
-          type: 'item'
-        }
-      ]
-    }
+   
   ];
 
   // Function to render menu items

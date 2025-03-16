@@ -13,13 +13,12 @@ import {
 export const fetchProducts = () => async (dispatch) => {
   try {
     dispatch(fetchProductsStart());
-    const response = await axios.get(`${api.api}/api/admin/v1/product`);
+    const response = await axios.get(`${api.api}/api/v1/admin/products`);
     
-    console.log('API Response:', response.data);
+    console.log('Fetch products response:', response.data);
     
-    if (response.data) {
-      // Extract products from the response
-      const products = response.data.products || [];
+    if (response.data && response.data.data && response.data.data.products && response.data.data.products.$values) {
+      const products = response.data.data.products.$values || [];
       dispatch(fetchProductsSuccess(products));
       return products;
     } else {
@@ -38,45 +37,108 @@ export const createProduct = (productData) => async (dispatch) => {
   try {
     const response = await axios.post(`${api.api}/api/admin/v1/product`, productData);
     
-    if (response.data && response.data.success) {
-      dispatch(createProductSuccess(response.data.data.product));
-      return response.data.data.product;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error creating product:', error);
-    return null;
-  }
-};
-
-// Update a product
-export const updateProduct = (id, productData) => async (dispatch) => {
-  try {
-    const response = await axios.put(`${api.api}/api/admin/v1/product/${id}`, productData);
+    console.log('Create product response:', response.data);
     
     if (response.data && response.data.success) {
-      dispatch(updateProductSuccess(response.data.data.product));
-      return response.data.data.product;
+      const newProduct = response.data.data?.product || response.data.product;
+      dispatch(createProductSuccess(newProduct));
+      return {
+        success: true,
+        product: newProduct
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data?.message || 'Failed to create product'
+      };
     }
-    return null;
   } catch (error) {
-    console.error('Error updating product:', error);
-    return null;
+    console.error('Error creating product:', error);
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to create product';
+    
+    return {
+      success: false,
+      message: errorMessage
+    };
   }
 };
 
-// Delete a product
+// Update a product by ID
+export const updateProduct = (id, productData) => async (dispatch) => {
+  try {
+    console.log('Updating product with ID:', id, 'Data:', productData);
+    
+    // Ensure the productData includes the "Category" field
+    if (!productData.category) {
+      throw new Error('The Category field is required.');
+    }
+
+    const response = await axios.put(`${api.api}/api/v1/admin/products/${id}`, productData);
+    
+    console.log('Update product response:', response.data);
+    
+    if (response.data && response.data.success) {
+      const updatedProduct = response.data.data?.product || response.data.product;
+      dispatch(updateProductSuccess(updatedProduct));
+      return {
+        success: true,
+        product: updatedProduct,
+        message: 'Product updated successfully'
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data?.message || 'Failed to update product'
+      };
+    }
+  } catch (error) {
+    console.error('Error updating product:', error);
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to update product';
+    
+    return {
+      success: false,
+      message: errorMessage
+    };
+  }
+};
+
+// Delete a product by ID
 export const deleteProduct = (id) => async (dispatch) => {
   try {
-    const response = await axios.delete(`${api.api}/api/admin/v1/product/${id}`);
+    console.log('Deleting product with ID:', id);
+    
+    const response = await axios.delete(`${api.api}/api/v1/admin/products/${id}`);
+    
+    console.log('Delete product response:', response.data);
     
     if (response.data && response.data.success) {
       dispatch(deleteProductSuccess(id));
-      return true;
+      return {
+        success: true,
+        message: 'Product deleted successfully'
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data?.message || 'Failed to delete product'
+      };
     }
-    return false;
   } catch (error) {
     console.error('Error deleting product:', error);
-    return false;
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to delete product';
+    
+    return {
+      success: false,
+      message: errorMessage
+    };
   }
 };

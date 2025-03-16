@@ -18,9 +18,8 @@ export const fetchUsers = () => async (dispatch) => {
     
     console.log('Fetch users response:', response.data);
     
-    if (response.data && response.data.success) {
-      // Correctly extract users from response.data.data.users
-      const users = response.data.data?.users || [];
+    if (response.data && response.data.data && response.data.data.users && response.data.data.users.$values) {
+      const users = response.data.data.users.$values || [];
       dispatch(fetchUsersSuccess(users));
       return users;
     } else {
@@ -109,7 +108,7 @@ export const updateUser = (id, userData) => async (dispatch) => {
   try {
     console.log('Updating user with ID:', id, 'Data:', userData);
     
-    const response = await axios.put(`${api.api}/api/admin/v1/user/${id}`, userData);
+    const response = await axios.put(`${api.api}/api/admin/v1/users/${id}`, userData);
     
     console.log('Update user response:', response.data);
     

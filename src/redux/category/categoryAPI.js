@@ -13,11 +13,13 @@ import {
 export const fetchCategories = () => async (dispatch) => {
   try {
     dispatch(fetchCategoriesStart());
-    const response = await axios.get(`${api.api}/api/admin/v1/category`);
+    const response = await axios.get(`${api.api}/api/admin/v1/category/names`);
 
     if (response.data && response.data.success) {
-      dispatch(fetchCategoriesSuccess(response.data.data.categories));
-      return response.data.data.categories;
+      // Extract category names from the response
+      const categoryNames = response.data.data.categoryNames.$values;
+      dispatch(fetchCategoriesSuccess(categoryNames));
+      return categoryNames;
     } else {
       dispatch(fetchCategoriesFailure(response.data.message || 'Failed to fetch categories'));
       return null;
