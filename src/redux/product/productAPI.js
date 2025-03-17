@@ -1,13 +1,35 @@
 import axios from 'axios';
 import api from '../../config/api';
-import { 
-  fetchProductsStart, 
-  fetchProductsSuccess, 
-  fetchProductsFailure,
-  createProductSuccess,
-  updateProductSuccess,
-  deleteProductSuccess
+import {
+  fetchProductsStart,
+  fetchProductsSuccess,
+  fetchProductsFailure
 } from './productSlice';
+
+// Fetch products for user
+export const fetchUserProducts = () => async (dispatch) => {
+  try {
+    dispatch(fetchProductsStart());
+    const response = await axios.get(`${api.api}/api/user/products`);
+
+    if (response.data && response.data.success) {
+      const products = response.data.data.products.$values;
+      dispatch(fetchProductsSuccess(products));
+      return products;
+    } else {
+      dispatch(fetchProductsFailure(response.data.message || 'Failed to fetch products'));
+      return null;
+    }
+  } catch (error) {
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to fetch products. Please try again.';
+    
+    dispatch(fetchProductsFailure(errorMessage));
+    return null;
+  }
+};
 
 // Fetch all products
 export const fetchProducts = () => async (dispatch) => {
@@ -71,12 +93,11 @@ export const updateProduct = (id, productData) => async (dispatch) => {
   try {
     console.log('Updating product with ID:', id, 'Data:', productData);
     
-    // Ensure the productData includes the "Category" field
-    if (!productData.category) {
+    if (!productData.Category) {
       throw new Error('The Category field is required.');
     }
 
-    const response = await axios.put(`${api.api}/api/v1/admin/products/${id}`, productData);
+    const response = await axios.put(`${api.api}/api/v1/admin/manage-product/${id}`, productData);
     
     console.log('Update product response:', response.data);
     
@@ -96,14 +117,9 @@ export const updateProduct = (id, productData) => async (dispatch) => {
     }
   } catch (error) {
     console.error('Error updating product:', error);
-    const errorMessage = 
-      error.response?.data?.message || 
-      error.message || 
-      'Failed to update product';
-    
     return {
       success: false,
-      message: errorMessage
+      message: error.response?.data?.message || error.message || 'Failed to update product'
     };
   }
 };

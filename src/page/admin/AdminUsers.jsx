@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { Table, Button, Space, Input, Modal, Form, Typography, Card, message, Popconfirm, Row, Col, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, UserOutlined, TeamOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import AdminLayout from '../../components/layout/admin/AdminLayout';
@@ -33,7 +33,7 @@ const AdminUsers = () => {
             form.setFieldsValue({
                 email: user.email,
                 fullName: user.fullName,
-                password: '', // Don't show the password for security
+                password: user.password, // Leave blank for security
                 role: user.role
             });
         } else {
@@ -43,17 +43,24 @@ const AdminUsers = () => {
     };
 
     const handleSubmit = async (values) => {
+        const payload = {
+            ...values,
+            password: values.password || undefined // Only include password if changed
+        };
+
         if (editingUser) {
-            const result = await dispatch(updateUser(editingUser.id, values));
+            const result = await dispatch(updateUser(editingUser.id, payload));
             if (result) {
                 message.success('User updated successfully');
+                dispatch(fetchUsers()); // Refresh user list after successful update
             } else {
                 message.error('Failed to update user');
             }
         } else {
-            const result = await dispatch(createUser(values));
+            const result = await dispatch(createUser(payload));
             if (result) {
                 message.success('User created successfully');
+                dispatch(fetchUsers()); // Refresh user list after successful creation
             } else {
                 message.error('Failed to create user');
             }
@@ -140,25 +147,27 @@ const AdminUsers = () => {
                         size="small"
                         onClick={() => showModal(record)}
                     />
-                    <Popconfirm
-                        title="Are you sure you want to delete this user?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button 
-                            type="primary" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            size="small"
-                        />
-                    </Popconfirm>
+                    {record.role !== 'Admin' && (
+                        <Popconfirm
+                            title="Are you sure you want to delete this user?"
+                            onConfirm={() => handleDelete(record.id)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button 
+                                type="primary" 
+                                danger 
+                                icon={<DeleteOutlined />} 
+                                size="small"
+                            />
+                        </Popconfirm>
+                    )}
                 </Space>
             ),
         },
     ];
 
-    return(
+    return (
         <AdminLayout>
             {/* Summary Cards */}
             <div className="px-6 pt-6 pb-4">
@@ -220,13 +229,7 @@ const AdminUsers = () => {
                                 onChange={e => setSearchText(e.target.value)}
                                 style={{ width: 250 }}
                             />
-                            <Button 
-                                type="primary" 
-                                icon={<PlusOutlined />}
-                                onClick={() => showModal()}
-                            >
-                                Add User
-                            </Button>
+                           
                         </Space>
                     </div>
 

@@ -2,7 +2,6 @@ import axios from 'axios';
 import api from '../../config/api';
 import { loginStart, loginSuccess, loginFailure, logout } from './authSlice';
 
-// Keep the existing functions
 export const loginAdmin = (credentials) => async (dispatch) => {
   try {
     dispatch(loginStart());
@@ -76,4 +75,64 @@ export const logoutAdmin = () => (dispatch) => {
   delete axios.defaults.headers.common['Authorization'];
   
   dispatch(logout());
+};
+
+export const loginUser = (credentials) => async (dispatch) => {
+  try {
+    dispatch(loginStart());
+    
+    const response = await axios.post('http://localhost:5284/api/v1/user/login', {
+      email: credentials.email,
+      password: credentials.password
+    });
+    
+    if (response.data) {
+      const userData = response.data;
+      const token = response.data.token;
+      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        dispatch(loginSuccess(userData));
+        return true;
+      }
+    }
+    
+    dispatch(loginFailure('Invalid response from server'));
+    return false;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Login failed';
+    dispatch(loginFailure(errorMessage));
+    return false;
+  }
+};
+
+export const logoutUser = () => (dispatch) => {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('isUser');
+  delete axios.defaults.headers.common['Authorization'];
+  dispatch(logout());
+};
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await axios.post('http://localhost:5284/api/v1/user/register', {
+      email: userData.email,
+      password: userData.password,
+      fullName: userData.fullName,
+      phoneNumber: userData.phoneNumber
+    });
+    
+    if (response.data) {
+      return { success: true, data: response.data };
+    }
+    return { success: false, error: 'Registration failed' };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Registration failed'
+    };
+  }
 };

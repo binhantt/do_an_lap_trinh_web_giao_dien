@@ -1,0 +1,10 @@
+POST   http://localhost:5284/api/v1/users/register    - Register a new user
+POST   http://localhost:5284/api/v1/users/login       - User login
+GET    http://localhost:5284/api/v1/users/profile     - Get user profile
+PUT    http://localhost:5284/api/v1/users/profile     - Update user profile
+POST   http://localhost:5284/api/v1/orders           - Create a new order
+GET    http://localhost:5284/api/v1/orders/{userId}  - Get orders for a user
+GET    http://localhost:5284/api/v1/orders/details/{id} - Get order details by order ID
+PUT    http://localhost:5284/api/v1/orders/{id}      - Update order status
+DELETE http://localhost:5284/api/v1/orders/{id}      - Cancel an order
+GET    http://localhost:5284/api/v1/products/{id}    - Get product details by product ID

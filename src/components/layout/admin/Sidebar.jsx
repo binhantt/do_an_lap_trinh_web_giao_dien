@@ -70,8 +70,6 @@ const Sidebar = ({ collapsed }) => {
     },
    
   ];
-
-  // Function to render menu items
   const renderMenuItems = (items) => {
     return items.map(item => {
       if (item.type === 'divider') {

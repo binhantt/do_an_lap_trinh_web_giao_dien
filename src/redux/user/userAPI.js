@@ -14,7 +14,7 @@ import {
 export const fetchUsers = () => async (dispatch) => {
   try {
     dispatch(fetchUsersStart());
-    const response = await axios.get(`${api.api}/api/v1/admin/users`);
+    const response = await axios.get(`${api.api}/api/v1/admin/user/all`);
     
     console.log('Fetch users response:', response.data);
     
@@ -108,7 +108,7 @@ export const updateUser = (id, userData) => async (dispatch) => {
   try {
     console.log('Updating user with ID:', id, 'Data:', userData);
     
-    const response = await axios.put(`${api.api}/api/admin/v1/users/${id}`, userData);
+    const response = await axios.put(`${api.api}/api/v1/admin/manage-user/${id}`, userData);
     
     console.log('Update user response:', response.data);
     
@@ -145,7 +145,7 @@ export const deleteUser = (id) => async (dispatch) => {
   try {
     console.log('Deleting user with ID:', id);
     
-    const response = await axios.delete(`${api.api}/api/admin/v1/user/${id}`);
+    const response = await axios.delete(`${api.api}/api/v1/admin/user/${id}`);
     
     console.log('Delete user response:', response.data);
     

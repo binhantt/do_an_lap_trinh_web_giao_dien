@@ -4,8 +4,6 @@ import categoryReducer from './category/categorySlice';
 import  usersReducer  from './user/userSlice';
 import PruductReducer from './product/productSlice';
 import orderReducer from './order/orderSlice';
-// Import other reducers as needed
-
 export const store = configureStore({
   reducer: {
     auth: authReducer,

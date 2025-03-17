@@ -11,35 +11,116 @@ const { Title } = Typography;
 const AdminCategories = () => {
     const dispatch = useDispatch();
     const categoryState = useSelector(state => state.category) || { categories: [], loading: false };
-    const { categories = [], loading } = categoryState; // Ensure categories is an array
-    
-    // Convert category names to objects for table display
-    // Convert category names to objects for table display using actual database IDs
-    const categoryObjects = categories.map((category) => ({
-        id: category.id, // Use the actual ID from the database
-        name: category.name, // Ensure name is correctly extracted as a string
-        description: `Description for ${category.name}`, // Placeholder description
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }));
-    const totalProducts = 156;
-    const searchCount = 24;
-    
+    const { categories = [], loading } = categoryState;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [editingCategory, setEditingCategory] = useState(null);
     const [searchText, setSearchText] = useState('');
+    
+    // Calculate total products across all categories
+    const totalProducts = categories.reduce((total, category) => 
+        total + (category.products?.$values?.length || 0), 0
+    );
+
+    // For now, we'll use a static value for searchCount
+    // In a real application, this would come from analytics or a backend API
+    const searchCount = 0;
 
     useEffect(() => {
         dispatch(fetchCategories());
     }, [dispatch]);
+
+    const categoryObjects = categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        productsCount: category.products?.$values?.length || 0
+    }));
+
+    const filteredCategories = categoryObjects.filter(
+        category => 
+            category.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+            category.description?.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'id',
+            key: 'id',
+            width: 80,
+        },
+        {
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+        },
+        {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description',
+            ellipsis: true,
+            width: '30%',
+        },
+        {
+            title: 'Created At',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: text => new Date(text).toLocaleDateString(),
+            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+        },
+        {
+            title: 'Updated At',
+            dataIndex: 'updatedAt',
+            key: 'updatedAt',
+            render: text => new Date(text).toLocaleDateString(),
+            sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+        },
+        {
+            title: 'Products Count',
+            dataIndex: 'productsCount',
+            key: 'productsCount',
+            width: 120,
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            width: 120,
+            render: (_, record) => (
+                <Space size="small">
+                    <Button 
+                        type="primary" 
+                        icon={<EditOutlined />} 
+                        size="small"
+                        onClick={() => showModal(record)}
+                    />
+                    <Popconfirm
+                        title="Are you sure you want to delete this category?"
+                        onConfirm={() => handleDelete(record.id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button 
+                            type="primary" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            size="small"
+                        />
+                    </Popconfirm>
+                </Space>
+            ),
+        },
+    ];
 
     const showModal = (category = null) => {
         setEditingCategory(category);
         if (category) {
             form.setFieldsValue({
                 name: category.name,
-                description: category.description
+                description: category.description || ''
             });
         } else {
             form.resetFields();
@@ -78,82 +159,6 @@ const AdminCategories = () => {
             message.error('Failed to delete category');
         }
     };
-
-    // Ensure this declaration is unique
-    const filteredCategories = categoryObjects.filter(
-        category => 
-            category.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-            category.description?.toLowerCase().includes(searchText.toLowerCase())
-    );
-
-    // Remove or rename any duplicate declarations of filteredCategories
-    // For example, if there's another declaration like this:
-    // const filteredCategories = someOtherLogic();
-    // Rename it to something else, e.g., filteredCategoriesByOtherLogic
-
-    const columns = [
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 80,
-        },
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
-        },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-            ellipsis: true,
-            width: '30%',
-        },
-        {
-            title: 'Created At',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: text => new Date(text).toLocaleDateString(),
-            sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-        },
-        {
-            title: 'Updated At',
-            dataIndex: 'updatedAt',
-            key: 'updatedAt',
-            render: text => new Date(text).toLocaleDateString(),
-            sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
-        },
-        {
-            title: 'Actions',
-            key: 'actions',
-            width: 120,
-            render: (_, record) => (
-                <Space size="small">
-                    <Button 
-                        type="primary" 
-                        icon={<EditOutlined />} 
-                        size="small"
-                        onClick={() => showModal(record)}
-                    />
-                    <Popconfirm
-                        title="Are you sure you want to delete this category?"
-                        onConfirm={() => handleDelete(record.id)} // Use record.id from filteredCategories
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button 
-                            type="primary" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            size="small"
-                        />
-                    </Popconfirm>
-                </Space>
-            ),
-        },
-    ];
 
     return(
         <AdminLayout>

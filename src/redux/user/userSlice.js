@@ -39,6 +39,8 @@ const userSlice = createSlice({
       if (state.selectedUser && state.selectedUser.id === action.payload.id) {
         state.selectedUser = action.payload;
       }
+      // Dispatch fetchUsers to refresh the user list
+      fetchUsersStart(state);
     },
     deleteUserSuccess(state, action) {
       state.users = state.users.filter(user => user.id !== action.payload);

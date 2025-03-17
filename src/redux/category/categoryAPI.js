@@ -13,13 +13,38 @@ import {
 export const fetchCategories = () => async (dispatch) => {
   try {
     dispatch(fetchCategoriesStart());
-    const response = await axios.get(`${api.api}/api/admin/v1/category/names`);
+    const response = await axios.get(`${api.api}/api/v1/admin/categories`);
 
     if (response.data && response.data.success) {
-      // Extract category names from the response
-      const categoryNames = response.data.data.categoryNames.$values;
-      dispatch(fetchCategoriesSuccess(categoryNames));
-      return categoryNames;
+      // Extract categories from the response
+      const categories = response.data.data.categories.$values;
+      dispatch(fetchCategoriesSuccess(categories));
+      return categories;
+    } else {
+      dispatch(fetchCategoriesFailure(response.data.message || 'Failed to fetch categories'));
+      return null;
+    }
+  } catch (error) {
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to fetch categories. Please try again.';
+    
+    dispatch(fetchCategoriesFailure(errorMessage));
+    return null;
+  }
+};
+
+// Add this new function for user categories
+export const fetchUserCategories = () => async (dispatch) => {
+  try {
+    dispatch(fetchCategoriesStart());
+    const response = await axios.get(`${api.api}/api/v1/user/categories`);
+
+    if (response.data && response.data.success) {
+      const categories = response.data.data.categories.$values;
+      dispatch(fetchCategoriesSuccess(categories));
+      return categories;
     } else {
       dispatch(fetchCategoriesFailure(response.data.message || 'Failed to fetch categories'));
       return null;
@@ -37,7 +62,7 @@ export const fetchCategories = () => async (dispatch) => {
 
 export const createCategory = (categoryData) => async (dispatch) => {
   try {
-    const response = await axios.post(`${api.api}/api/admin/v1/category`, categoryData);
+    const response = await axios.post(`${api.api}/api/v1/admin/categories`, categoryData);
     
     if (response.data && response.data.success) {
       dispatch(createCategorySuccess(response.data.data.category));
@@ -76,7 +101,7 @@ export const updateCategory = (id, categoryData) => async (dispatch) => {
 // Delete a category
 export const deleteCategory = (id) => async (dispatch) => {
   try {
-    const response = await axios.delete(`${api.api}/api/admin/v1/category/${id}`);
+    const response = await axios.delete(`${api.api}/api/v1/admin/manage-category/${id}`);
     
     if (response.data && response.data.success) {
       dispatch(deleteCategorySuccess(id));
