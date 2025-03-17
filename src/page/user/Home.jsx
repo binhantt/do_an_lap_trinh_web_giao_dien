@@ -54,6 +54,17 @@ const Home = () => {
         );
     }
 
+    // Add a function to format product name for URL
+    const formatProductName = (name) => {
+        return name.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D')
+            .replace(/\s+/g, '-')
+            .replace(/[^\w-]/g, '');
+    };
+
     return (
         <div>
             <Navbar />
@@ -80,7 +91,7 @@ const Home = () => {
                             <Row gutter={[16, 16]}>
                                 {group.products.map(product => (
                                     <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
-                                        <Link to={`/product/${product.id}`}>
+                                        <Link to={`/product/${formatProductName(product.name)}`}>
                                             <Card
                                                 hoverable
                                                 cover={
@@ -113,7 +124,6 @@ const Home = () => {
                         </div>
                     ))
                 )}
-
             </div>
         </div>
     );

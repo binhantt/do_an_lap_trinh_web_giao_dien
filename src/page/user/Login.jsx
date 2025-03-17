@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../../redux/auth/authAPI';
 import './Login.css';
@@ -12,6 +12,15 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+
+    useEffect(() => {
+        // Check if user is already logged in
+        const savedUser = localStorage.getItem('user');
+        if (savedUser && isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
 
     const onFinish = async (values) => {
         try {

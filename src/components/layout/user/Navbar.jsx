@@ -28,7 +28,7 @@ const Navbar = () => {
     const userMenu = (
         <Menu>
             <Menu.Item key="profile">
-                <Link to="/profile">Profile</Link>
+                <Link to={`/profile/${user?.id}`}>Profile</Link>
             </Menu.Item>
             <Menu.Item key="orders">
                 <Link to="/orders">My Orders</Link>

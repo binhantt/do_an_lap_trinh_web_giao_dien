@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { PrivateRoute, PublicRoute } from '../components/RouteGuards';
 import Home from '../page/user/Home';
 import CategoryPage from '../page/user/CategoryPage';
 import OrderDetailPage from '../page/user/OrderDetailPage';
@@ -14,12 +15,31 @@ const Userouter = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/category/:categoryName" element={<CategoryPage />} />
-                <Route path="/order/:orderId" element={<OrderDetailPage />} />
-                <Route path="/product/:productId" element={<ProductDetail />} />
-                <Route path='/login' element={<Login/>} />
-                // Add this to your routes
-                <Route path="/register" element={<Register />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/product/:productname" element={<ProductDetail />} />
+                
+                {/* Auth routes with redirect if already logged in */}
+                <Route path="/login" element={
+                    <PublicRoute>
+                        <Login />
+                    </PublicRoute>
+                } />
+                <Route path="/register" element={
+                    <PublicRoute>
+                        <Register />
+                    </PublicRoute>
+                } />
+
+                {/* Protected routes */}
+                <Route path="/profile/:name" element={
+                    <PrivateRoute>
+                        <Profile />
+                    </PrivateRoute>
+                } />
+                <Route path="/order/:orderId" element={
+                    <PrivateRoute>
+                        <OrderDetailPage />
+                    </PrivateRoute>
+                } />
             </Routes>
         </Router>
     );

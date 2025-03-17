@@ -1,125 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Avatar, Tabs, Form, Input, Button, message, Spin } from 'antd';
-import { UserOutlined, PhoneOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
-import { useSelector, useDispatch } from 'react-redux';
-import axios from 'axios';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, Avatar, Typography, Descriptions, Space, Button } from 'antd';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../../redux/auth/authAPI';
+import Navbar from '../../components/layout/user/Navbar';
 
-const { TabPane } = Tabs;
+const { Title } = Typography;
 
 const Profile = () => {
-    const [loading, setLoading] = useState(false);
-    const [userData, setUserData] = useState(null);
+    const { name } = useParams();
     const user = useSelector(state => state.auth.user);
+    const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+    const navigate = useNavigate();
     const dispatch = useDispatch();
 
     useEffect(() => {
-        fetchUserProfile();
-    }, []);
-
-    const fetchUserProfile = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`http://localhost:5284/api/v1/user/${user.id}`);
-            if (response.data.success) {
-                setUserData(response.data.data);
-            }
-        } catch (error) {
-            message.error('Failed to fetch user profile');
-        } finally {
-            setLoading(false);
+        if (!isAuthenticated) {
+            navigate('/login');
+        } else if (user && user.fullName !== name) {
+            navigate(`/profile/${user.fullName}`);
         }
+    }, [isAuthenticated, navigate, user, name]);
+
+    const handleLogout = () => {
+        dispatch(logoutUser());
+        navigate('/login');
     };
 
-    const onUpdateProfile = async (values) => {
-        try {
-            setLoading(true);
-            const response = await axios.put(`http://localhost:5284/api/v1/user/${user.id}`, {
-                email: values.email,
-                fullName: values.fullName
-            });
-            
-            if (response.data.success) {
-                message.success(response.data.message || 'Profile updated successfully');
-                fetchUserProfile(); // Refresh user data
-            }
-        } catch (error) {
-            message.error(error.response?.data?.message || 'Failed to update profile');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (loading && !userData) {
-        return (
-            <div style={{ textAlign: 'center', padding: '50px' }}>
-                <Spin size="large" />
-            </div>
-        );
+    if (!user) {
+        return <div>Loading...</div>;
     }
 
     return (
-        <div className="profile-container">
-            <Card className="profile-card">
-                <div className="profile-header">
-                    <Avatar 
-                        size={100} 
-                        icon={<UserOutlined />}
-                    />
-                    <h2>{userData?.fullName}</h2>
-                    <p>{userData?.email}</p>
-                    <p>Role: {userData?.role}</p>
-                </div>
+        <div>
+            <Navbar />
+            <div style={{ padding: '24px', maxWidth: 800, margin: '0 auto' }}>
+                <Card>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                            <Avatar 
+                                size={128} 
+                                icon={<UserOutlined />}
+                                style={{ backgroundColor: '#1890ff' }}
+                            />
+                            <Title level={2} style={{ marginTop: 16 }}>
+                                {user.fullName}
+                            </Title>
+                            <Typography.Text type="secondary">
+                                {user.role}
+                            </Typography.Text>
+                        </div>
 
-                <Tabs defaultActiveKey="1">
-                    <TabPane tab="Profile Information" key="1">
-                        <Form
-                            layout="vertical"
-                            initialValues={{
-                                fullName: userData?.fullName,
-                                email: userData?.email,
-                                createdAt: new Date(userData?.createdAt).toLocaleDateString(),
-                                updatedAt: new Date(userData?.updatedAt).toLocaleDateString()
-                            }}
-                            onFinish={onUpdateProfile}
+                        <Descriptions bordered column={1}>
+                            <Descriptions.Item label="User ID">
+                                {user.id}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Email">
+                                {user.email}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Role">
+                                {user.role}
+                            </Descriptions.Item>
+                        </Descriptions>
+
+                        <Button 
+                            type="primary" 
+                            danger 
+                            icon={<LogoutOutlined />}
+                            onClick={handleLogout}
+                            block
                         >
-                            <Form.Item
-                                name="fullName"
-                                label="Full Name"
-                                rules={[{ required: true, message: 'Please input your name!' }]}
-                            >
-                                <Input prefix={<UserOutlined />} />
-                            </Form.Item>
-
-                            <Form.Item
-                                name="email"
-                                label="Email"
-                                rules={[
-                                    { required: true, message: 'Please input your email!' },
-                                    { type: 'email', message: 'Invalid email format!' }
-                                ]}
-                            >
-                                <Input prefix={<MailOutlined />} disabled />
-                            </Form.Item>
-
-                            <Form.Item name="createdAt" label="Created At">
-                                <Input disabled />
-                            </Form.Item>
-
-                            <Form.Item name="updatedAt" label="Last Updated">
-                                <Input disabled />
-                            </Form.Item>
-
-                            <Form.Item>
-                                <Button type="primary" htmlType="submit" loading={loading} block>
-                                    Update Profile
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </TabPane>
-
-                    {/* ... rest of the password change tab remains the same ... */}
-                </Tabs>
-            </Card>
+                            Logout
+                        </Button>
+                    </Space>
+                </Card>
+            </div>
         </div>
     );
 };

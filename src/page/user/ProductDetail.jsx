@@ -8,13 +8,28 @@ import Navbar from '../../components/layout/user/Navbar';
 const { Title, Text } = Typography;
 
 const ProductDetail = () => {
-    const { productId } = useParams();
+    const { productname } = useParams(); // Changed from productId to productname
     const navigate = useNavigate();
     const [quantity, setQuantity] = useState(1);
     
+    // Function to format product name for comparison
+    const formatProductName = (name) => {
+        return name.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D')
+            .replace(/\s+/g, '-')
+            .replace(/[^\w-]/g, '');
+    };
+    
+    // Find product by formatted name
     const product = useSelector(state => 
-        state.product.products.find(p => p.id === parseInt(productId))
+        state.product.products.find(p => 
+            formatProductName(p.name) === productname
+        )
     );
+
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
     const category = useSelector(state => 
         state.category.categories.find(c => c.id === product?.categoryId)

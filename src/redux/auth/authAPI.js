@@ -78,34 +78,34 @@ export const logoutAdmin = () => (dispatch) => {
 };
 
 export const loginUser = (credentials) => async (dispatch) => {
-  try {
-    dispatch(loginStart());
-    
-    const response = await axios.post('http://localhost:5284/api/v1/user/login', {
-      email: credentials.email,
-      password: credentials.password
-    });
-    
-    if (response.data) {
-      const userData = response.data;
-      const token = response.data.token;
-      
-      if (userData) {
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        dispatch(loginSuccess(userData));
-        return true;
-      }
+    try {
+        dispatch(loginStart());
+        
+        const response = await axios.post('http://localhost:5284/api/v1/user/login', {
+            email: credentials.email,
+            password: credentials.password
+        });
+        
+        if (response.data && response.data.success) {
+            const userData = response.data.data.user;
+            const token = response.data.data.token;
+            
+            if (userData && userData.id) {
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('token', token);
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                dispatch(loginSuccess(userData));
+                return { success: true, fullName: userData.fullName }; // Return fullName for navigation
+            }
+        }
+        
+        dispatch(loginFailure('Invalid response from server'));
+        return { success: false };
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Login failed';
+        dispatch(loginFailure(errorMessage));
+        return { success: false };
     }
-    
-    dispatch(loginFailure('Invalid response from server'));
-    return false;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Login failed';
-    dispatch(loginFailure(errorMessage));
-    return false;
-  }
 };
 
 export const logoutUser = () => (dispatch) => {
@@ -116,7 +116,7 @@ export const logoutUser = () => (dispatch) => {
   dispatch(logout());
 };
 
-export const registerUser = async (userData) => {
+export const registerUser = (userData) => async (dispatch) => {
   try {
     const response = await axios.post('http://localhost:5284/api/v1/user/register', {
       email: userData.email,
@@ -126,7 +126,16 @@ export const registerUser = async (userData) => {
     });
     
     if (response.data) {
-      return { success: true, data: response.data };
+      const userData = response.data.user || response.data.data; // Ensure correct data extraction
+      const token = response.data.token;
+      
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        dispatch(loginSuccess(userData)); // Dispatch loginSuccess with user data
+        return { success: true, data: response.data };
+      }
     }
     return { success: false, error: 'Registration failed' };
   } catch (error) {

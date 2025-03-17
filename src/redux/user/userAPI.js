@@ -14,7 +14,7 @@ import {
 export const fetchUsers = () => async (dispatch) => {
   try {
     dispatch(fetchUsersStart());
-    const response = await axios.get(`${api.api}/api/v1/admin/user/all`);
+    const response = await axios.get(`${api.api}/api/v1/admin/users`);
     
     console.log('Fetch users response:', response.data);
     

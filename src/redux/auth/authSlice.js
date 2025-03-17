@@ -5,6 +5,7 @@ const initialState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  userId: null  // Add userId to state
 };
 
 const authSlice = createSlice({
@@ -19,6 +20,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.isAuthenticated = true;
       state.user = action.payload;
+      state.userId = action.payload.id;
       state.error = null;
     },
     loginFailure: (state, action) => {
