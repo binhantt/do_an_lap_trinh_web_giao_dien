@@ -23,7 +23,7 @@ const Profile = () => {
             navigate(`/profile/${user.fullName}`);
         }
     }, [isAuthenticated, navigate, user, name]);
-
+    
     const handleLogout = () => {
         dispatch(logoutUser());
         navigate('/login');
@@ -32,7 +32,7 @@ const Profile = () => {
     if (!user) {
         return <div>Loading...</div>;
     }
-
+    console.log(user);
     return (
         <div>
             <Navbar />
@@ -46,22 +46,22 @@ const Profile = () => {
                                 style={{ backgroundColor: '#1890ff' }}
                             />
                             <Title level={2} style={{ marginTop: 16 }}>
-                                {user.fullName}
+                                {user.user.fullName}
                             </Title>
                             <Typography.Text type="secondary">
-                                {user.role}
+                                {user.user.role}
                             </Typography.Text>
                         </div>
 
                         <Descriptions bordered column={1}>
                             <Descriptions.Item label="User ID">
-                                {user.id}
+                                {user.user.id}
                             </Descriptions.Item>
                             <Descriptions.Item label="Email">
-                                {user.email}
+                                {user.user.email}
                             </Descriptions.Item>
                             <Descriptions.Item label="Role">
-                                {user.role}
+                                {user.user.role}
                             </Descriptions.Item>
                         </Descriptions>
 

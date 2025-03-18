@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Card, Row, Col, Typography, Image, Space, Tag, Button, InputNumber, Descriptions, message } from 'antd';
+import { useSelector, useDispatch } from 'react-redux';
+import { Card, Row, Col, Typography, Image, Space, Tag, Button, InputNumber, Descriptions, Input, message } from 'antd';
 import { ShoppingCartOutlined, LoginOutlined } from '@ant-design/icons';
 import Navbar from '../../components/layout/user/Navbar';
+import { createOrder } from '../../redux/order/orderAPI';
+import { fetchUserProducts } from '../../redux/product/productAPI';
+import { Modal } from 'antd'; // Import Modal from Ant Design
 
 const { Title, Text } = Typography;
 
 const ProductDetail = () => {
-    const { productname } = useParams(); // Changed from productId to productname
+    const { productname } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [quantity, setQuantity] = useState(1);
-    
-    // Function to format product name for comparison
+    const [shippingAddress, setShippingAddress] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+
+    useEffect(() => {
+        dispatch(fetchUserProducts());
+    }, [dispatch]);
+    console.log(productname);
     const formatProductName = (name) => {
         return name.toLowerCase()
             .normalize('NFD')
@@ -22,16 +31,15 @@ const ProductDetail = () => {
             .replace(/\s+/g, '-')
             .replace(/[^\w-]/g, '');
     };
-    
-    // Find product by formatted name
-    const product = useSelector(state => 
-        state.product.products.find(p => 
+
+    const product = useSelector(state =>
+        state.product.products.find(p =>
             formatProductName(p.name) === productname
         )
     );
-
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
-    const category = useSelector(state => 
+    const user = useSelector(state => state.auth.user);
+    const category = useSelector(state =>
         state.category.categories.find(c => c.id === product?.categoryId)
     );
 
@@ -46,7 +54,7 @@ const ProductDetail = () => {
         );
     }
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!isAuthenticated) {
             message.warning('Please login to add items to cart');
             navigate('/login');
@@ -57,7 +65,43 @@ const ProductDetail = () => {
             message.error('Not enough stock available');
             return;
         }
-        // Add to cart logic here
+
+        if (!shippingAddress || !phoneNumber) {
+            message.error('Please provide shipping address and phone number');
+            return;
+        }
+
+        Modal.confirm({
+            title: 'Confirm Purchase',
+            content: 'Do you want to purchase this product?',
+            onOk: async () => {
+                const orderData = {
+                    userId: user.id,
+                    orderDate: new Date().toISOString(),
+                    status: 'Pending',
+                    totalAmount: product.price * quantity,
+                    shippingAddress,
+                    phoneNumber,
+                    paymentMethod: 'COD',
+                    paymentStatus: 'Pending',
+                    orderDetails: [
+                        {
+                            ProductId: product.id,
+                            quantity,
+                            Price: product.price
+                        }
+                    ]
+                };
+
+                const result = await dispatch(createOrder(orderData));
+
+                if (result) {
+                    message.success('Order created successfully');
+                } else {
+                    message.error('Failed to create order');
+                }
+            }
+        });
     };
 
     return (
@@ -80,36 +124,48 @@ const ProductDetail = () => {
                                 <Title level={2}>{product.name}</Title>
                                 <Text>{product.description}</Text>
                                 <Title level={3}>{product.price.toLocaleString()} VND</Title>
-                                
+
                                 <Space>
                                     <Text>Quantity:</Text>
-                                    <InputNumber 
-                                        min={1} 
-                                        max={product.stock} 
+                                    <InputNumber
+                                        min={1}
+                                        max={product.stock}
                                         value={quantity}
                                         onChange={setQuantity}
                                         disabled={!isAuthenticated || product.stock === 0}
                                     />
                                 </Space>
 
+                                <Input
+                                    placeholder="Enter shipping address"
+                                    value={shippingAddress}
+                                    onChange={(e) => setShippingAddress(e.target.value)}
+                                />
+
+                                <Input
+                                    placeholder="Enter phone number"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                />
+
                                 <Tag color={product.stock > 0 ? 'green' : 'red'} style={{ fontSize: '16px' }}>
                                     {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
                                 </Tag>
 
                                 {isAuthenticated ? (
-                                    <Button 
-                                        type="primary" 
+                                    <Button
+                                        type="primary"
                                         size="large"
                                         icon={<ShoppingCartOutlined />}
                                         onClick={handleAddToCart}
                                         disabled={product.stock === 0}
                                         style={{ width: '200px' }}
                                     >
-                                        Add to Cart
+                                        mua san pham
                                     </Button>
                                 ) : (
-                                    <Button 
-                                        type="primary" 
+                                    <Button
+                                        type="primary"
                                         size="large"
                                         icon={<LoginOutlined />}
                                         onClick={() => navigate('/login')}

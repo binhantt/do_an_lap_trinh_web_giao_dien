@@ -14,7 +14,11 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { categories } = useSelector(state => state.category);
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
-    const user = useSelector(state => state.auth.user);
+    const user = useSelector(state => {
+        if (!state.auth.user) return null;
+      
+        return state.auth.user.user || state.auth.user;
+    });
 
     useEffect(() => {
         dispatch(fetchUserCategories());
@@ -28,7 +32,7 @@ const Navbar = () => {
     const userMenu = (
         <Menu>
             <Menu.Item key="profile">
-                <Link to={`/profile/${user?.id}`}>Profile</Link>
+                <Link to={`/profile/${user?.fullName || 'default'}`}>Profile</Link> 
             </Menu.Item>
             <Menu.Item key="orders">
                 <Link to="/orders">My Orders</Link>
@@ -40,7 +44,6 @@ const Navbar = () => {
         </Menu>
     );
 
-    // Function to remove special characters and spaces
     const formatCategoryName = (name) => {
         return name.toLowerCase()
             .normalize('NFD')
@@ -51,14 +54,11 @@ const Navbar = () => {
     };
 
     return (
-        <div className="navbar">
-            <div className="logo">
-                <Link to="/">Shop </Link>
+        <div className="navbar" style={{ display: 'flex', alignItems: 'center', padding: '0 20px', backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+            <div className="logo" style={{ flex: '1' }}>
+                <Link to="/" style={{ fontSize: '24px', fontWeight: 'bold' }} className='text-[#40a9ff]'>Đom Đóm Hack</Link>
             </div>
-            <Menu mode="horizontal" defaultSelectedKeys={['home']}>
-                <Menu.Item key="home" icon={<HomeOutlined />}>
-                    <Link to="/">Trang chủ</Link>
-                </Menu.Item>
+            <Menu mode="horizontal" style={{ flex: '2', justifyContent: 'end' }}>
                 <SubMenu key="categories" title="Sản Phẩm">
                     {categories.map(category => (
                         <Menu.Item key={`cat-${category.id}`}>
@@ -76,15 +76,16 @@ const Navbar = () => {
                     ) : null
                 ))}
                 {isAuthenticated && (
-                    <Menu.Item key="user-avatar" style={{ marginLeft: 'auto' }}>
-                        <Dropdown overlay={userMenu} trigger={['click']}>
+                    <Dropdown overlay={userMenu} trigger={['click']} style={{ marginLeft: 'auto' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                             <Avatar 
-                                style={{ cursor: 'pointer' }}
-                                src={user?.avatarUrl}
+                                src={user?.avatarUrl} 
                                 icon={<UserOutlined />}
+                                style={{ marginRight: '8px' }}
                             />
-                        </Dropdown>
-                    </Menu.Item>
+                            <span>{user?.fullName || 'Guest'}</span>
+                        </div>
+                    </Dropdown>
                 )}
             </Menu>
         </div>

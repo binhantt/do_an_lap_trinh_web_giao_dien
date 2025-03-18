@@ -34,10 +34,6 @@
   font-weight: bold;
 }
 
-.menu {
-  display: flex;
-  gap: 20px;
-}
 .login-container {
   min-height: 100vh;
   display: flex;

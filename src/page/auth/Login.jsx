@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 // Update the import
 import { loginUser } from '../../redux/auth/authAPI';
+import Navbar from '../../components/layout/user/Navbar';
 
 const { Title } = Typography;
 
@@ -19,7 +20,7 @@ const Login = () => {
             const success = await dispatch(loginUser(values));
             if (success) {
                 message.success('Login successful!');
-                navigate('/');
+                navigate('/Login');
             }
         } catch (error) {
             message.error('Login failed. Please try again.');
@@ -29,8 +30,10 @@ const Login = () => {
     };
 
     return (
+       <div>
+         <Navbar />
         <div style={{
-            minHeight: '100vh',
+            minHeight: '90vh',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -96,6 +99,7 @@ const Login = () => {
                 </Form>
             </Card>
         </div>
+       </div>
     );
 };
 

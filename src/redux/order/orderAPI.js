@@ -36,13 +36,14 @@ export const fetchOrders = () => async (dispatch) => {
 // Create a new order
 export const createOrder = (orderData) => async (dispatch) => {
   try {
-    const response = await axios.post(`${api.api}/api/admin/v1/order`, orderData);
+    const response = await axios.post('http://localhost:5284/api/admin/v1/order/create', orderData);
     
     if (response.data && response.data.success) {
       dispatch(createOrderSuccess(response.data.data.order));
       return response.data.data.order;
+    } else {
+      throw new Error('Failed to create order');
     }
-    return null;
   } catch (error) {
     console.error('Error creating order:', error);
     return null;

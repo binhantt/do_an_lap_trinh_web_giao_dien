@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { registerUser } from '../../redux/auth/authAPI';
 import './Register.css';
 
 const { Title, Text } = Typography;
@@ -11,24 +11,41 @@ const { Title, Text } = Typography;
 const Register = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [form] = Form.useForm();
 
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            const response = await axios.post('http://localhost:5284/api/v1/user/register', {
-                email: values.email,
-                password: values.password,
-                fullName: values.fullName,
-                phoneNumber: values.phoneNumber
-            });
-
-            if (response.data) {
+            const result = await dispatch(registerUser(values));
+            
+            if (result.success) {
                 message.success('Registration successful! Please login.');
                 navigate('/login');
+            } else {
+                // Handle validation errors
+                if (result.error && typeof result.error === 'object') {
+                    const serverErrors = result.error;
+                    const formErrors = {};
+                    
+                    // Convert server errors to form errors
+                    Object.keys(serverErrors).forEach(field => {
+                        formErrors[field] = {
+                            name: field,
+                            errors: Array.isArray(serverErrors[field]) 
+                                ? serverErrors[field] 
+                                : [serverErrors[field]]
+                        };
+                    });
+                    
+                    // Set form field errors
+                    form.setFields(Object.values(formErrors));
+                } else {
+                    message.error(result.error || 'Registration failed');
+                }
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Registration failed';
-            message.error(errorMessage);
+            message.error('Registration failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -42,6 +59,7 @@ const Register = () => {
                 </Title>
 
                 <Form
+                    form={form}
                     name="register"
                     onFinish={onFinish}
                     layout="vertical"
@@ -50,7 +68,8 @@ const Register = () => {
                     <Form.Item
                         name="fullName"
                         rules={[
-                            { required: true, message: 'Please input your full name!' }
+                            { required: true, message: 'Please input your full name!' },
+                            { min: 2, message: 'Name must be at least 2 characters!' }
                         ]}
                     >
                         <Input 

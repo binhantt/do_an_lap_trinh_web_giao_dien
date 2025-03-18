@@ -4,6 +4,7 @@ import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-de
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../redux/auth/authAPI';
+import Navbar from '../../components/layout/user/Navbar';
 
 const { Title } = Typography;
 
@@ -15,10 +16,17 @@ const Register = () => {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            const success = await dispatch(registerUser(values));
-            if (success) {
+            const success = await dispatch(registerUser({
+                fullName: values.name, // Ensure fullName is passed correctly
+                email: values.email,
+                password: values.password,
+                phoneNumber: values.phone
+            }));
+            if (success.success) {
                 message.success('Registration successful!');
-                navigate('/');
+                navigate('/'); // Navigate to login after successful registration
+            } else {
+                message.error(success.error || 'Registration failed. Please try again.');
             }
         } catch (error) {
             message.error('Registration failed. Please try again.');
@@ -28,8 +36,10 @@ const Register = () => {
     };
 
     return (
+        <div>
+        <Navbar />
         <div style={{
-            minHeight: '100vh',
+            minHeight: '90vh',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -117,6 +127,7 @@ const Register = () => {
                     </div>
                 </Form>
             </Card>
+        </div>
         </div>
     );
 };

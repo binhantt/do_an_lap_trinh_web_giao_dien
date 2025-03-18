@@ -62,7 +62,7 @@ const Navbar = ({ user }) => {
         <img
           src="https://flagcdn.com/w40/gb.png"
           alt="English"
-          style={{ width: 24, height: 16, borderRadius: 4, cursor: "pointer" }}
+          style={{ width: 40, height: 16, borderRadius: 4, cursor: "pointer" }}
         />
 
         {/* Icon thông báo */}

@@ -153,6 +153,19 @@ const AdminOrders = () => {
             key: 'phoneNumber',
         },
         {
+            title: 'Ordered Products',
+            key: 'orderedProducts',
+            render: (_, record) => (
+                <ul>
+                    {record.orderDetails.$values.map(detail => (
+                        <p key={detail.id}>
+                            {detail.productName}
+                        </p>
+                    ))}
+                </ul>
+            ),
+        },
+        {
             title: 'Created At',
             dataIndex: 'createdAt',
             key: 'createdAt',
