@@ -27,6 +27,109 @@ const AdminProducts = () => {
     const categoriesState = useSelector(state => state.category);
     const { categories } = categoriesState;
 
+    // Move columns definition here, before it's used
+    const columns = [
+        {
+            title: 'Product ID',
+            dataIndex: 'id',
+            key: 'id',
+            width: 80,
+        },
+        {
+            title: 'Image',
+            dataIndex: 'imageUrl',
+            key: 'image',
+            width: 100,
+            render: url => (
+                <img
+                    src={url || 'https://placehold.co/100x100'}
+                    alt="Product"
+                    style={{
+                        width: '60px',
+                        height: '60px',
+                        objectFit: 'cover',
+                        borderRadius: '4px'
+                    }}
+                />
+            ),
+        },
+        {
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+            width: 120,
+        },
+        {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description',
+            width: 200,
+            ellipsis: true,
+        },
+        {
+            title: 'Price',
+            dataIndex: 'price',
+            key: 'price',
+            render: price => `$${price.toFixed(2)}`,
+            width: 100,
+        },
+        {
+            title: 'Stock',
+            dataIndex: 'stock',
+            key: 'stock',
+            width: 80,
+        },
+        {
+            title: 'Category',
+            dataIndex: 'category',
+            key: 'category',
+            width: 120,
+            render: category => category?.name || 'N/A',
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            width: 100,
+            render: (_, record) => (
+                <Space size="middle">
+                    <Button 
+                        type="primary" 
+                        icon={<EditOutlined />} 
+                        size="small"
+                        onClick={() => showModal(record)}
+                    />
+                    <Popconfirm
+                        title="Are you sure you want to delete this product?"
+                        onConfirm={() => handleDelete(record.id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button 
+                            type="primary" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            size="small"
+                        />
+                    </Popconfirm>
+                </Space>
+            ),
+        },
+    ];
+
+    // Define filteredProducts after columns
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchText.toLowerCase()) ||
+        product.category?.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    useEffect(() => {
+        dispatch(fetchProducts());
+        dispatch(fetchCategories());
+    }, [dispatch]);
+
+    // Remove the standalone Table component that was here before
+
     const handleImageUpload = async (file) => {
         setImageLoading(true);
         const formData = new FormData();
@@ -55,18 +158,59 @@ const AdminProducts = () => {
         }
     };
 
-    useEffect(() => {
-        dispatch(fetchProducts());
-        dispatch(fetchCategories());
-    }, [dispatch]);
+    const handleSubmit = async (values) => {
+        const selectedCategory = categories.find(cat => cat.id === values.categoryId);
+        
+        const payload = {
+            name: values.name,
+            description: values.description,
+            price: parseFloat(values.price),
+            stock: parseInt(values.stock),
+            imageUrl: values.imageUrl,
+            categoryId: parseInt(values.categoryId)
+        };
+    
+        try {
+            if (editingProduct) {
+                const result = await dispatch(updateProduct(editingProduct.id, payload));
+                if (result.success) {
+                    message.success('Product updated successfully');
+                    await dispatch(fetchProducts());
+                } else {
+                    message.error(result.message || 'Failed to update product');
+                }
+            } else {
+                const result = await dispatch(createProduct(payload));
+                if (result.success) {
+                    message.success('Product created successfully');
+                    await dispatch(fetchProducts());
+                } else {
+                    message.error('Failed to create product');
+                }
+            }
+            setIsModalVisible(false);
+            form.resetFields();
+            setImageUrl('');
+        } catch (error) {
+            console.error('Error submitting product:', error);
+            message.error('An error occurred while saving the product');
+        }
+    };
 
-    console.log('Fetched products:', products); // Debug log
-
-    const filteredProducts = products.filter(
-        product => 
-            product.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            product.description.toLowerCase().includes(searchText.toLowerCase())
-    );
+    const handleDelete = async (id) => {
+        try {
+            const result = await dispatch(deleteProduct(id));
+            if (result.success) {
+                message.success('Product deleted successfully');
+                await dispatch(fetchProducts());
+            } else {
+                message.error(result.message || 'Failed to delete product');
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            message.error('An error occurred while deleting the product');
+        }
+    };
 
     const showModal = (product = null) => {
         setEditingProduct(product);
@@ -85,121 +229,6 @@ const AdminProducts = () => {
         }
         setIsModalVisible(true);
     };
-
-    const handleSubmit = async (values) => {
-        const selectedCategory = categories.find(cat => cat.id === values.categoryId);
-        
-        const payload = {
-            Name: values.name,
-            Description: values.description,
-            Price: parseFloat(values.price),
-            StockQuantity: parseInt(values.stock),
-            ImageUrl: values.imageUrl,
-            Category: {
-                Id: values.categoryId,
-                Name: selectedCategory?.name || ''
-            }
-        };
-    
-        if (editingProduct) {
-            const result = await dispatch(updateProduct(editingProduct.id, payload));
-            if (result.success) {
-                message.success('Product updated successfully');
-                dispatch(fetchProducts());
-            } else {
-                message.error(result.message || 'Failed to update product');
-            }
-        } else {
-            const result = await dispatch(createProduct(payload));
-            if (result.success) {
-                message.success('Product created successfully');
-                dispatch(fetchProducts());
-            } else {
-                message.error('Failed to create product');
-            }
-        }
-        setIsModalVisible(false);
-        form.resetFields();
-    };
-
-    const handleDelete = async (id) => {
-        const result = await dispatch(deleteProduct(id));
-        if (result.success) {
-            message.success('Product deleted successfully');
-        } else {
-            message.error('Failed to delete product');
-        }
-    };
-
-    const columns = [
-        {
-            title: 'Product ID',
-            dataIndex: 'id',
-            key: 'id',
-            width: 80,
-        },
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-            width: 120,
-        },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-            width: 200,
-        },
-        {
-            title: 'Price',
-            dataIndex: 'price',
-            key: 'price',
-            render: price => `$${price.toFixed(2)}`,
-        },
-        {
-            title: 'Stock',
-            dataIndex: 'stock',
-            key: 'stock',
-        },
-        {
-            title: 'Category ID',
-            dataIndex: 'categoryId',
-            key: 'categoryId',
-        },
-        {
-            title: 'Image URL',
-            dataIndex: 'imageUrl',
-            key: 'imageUrl',
-            render: url => <a href={url} target="_blank" rel="noopener noreferrer">View Image</a>,
-        },
-        {
-            title: 'Actions',
-            key: 'actions',
-            render: (_, record) => (
-                <Space size="middle">
-                    <Button 
-                        type="primary" 
-                        icon={<EditOutlined />} 
-                        size="small"
-                        onClick={() => showModal(record)}
-                    />
-                    <Popconfirm
-                        title="Are you sure you want to delete this product?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Yes"
-                        cancelText="No"
-                    >
-                        <Button 
-                            type="primary" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            size="small"
-                        />
-                    </Popconfirm>
-                </Space>
-            ),
-        },
-    ];
 
     return (
         <AdminLayout>
@@ -227,7 +256,12 @@ const AdminProducts = () => {
                     dataSource={filteredProducts}
                     rowKey="id"
                     loading={loading}
-                    pagination={{ pageSize: 4 }}
+                    pagination={{ 
+                        pageSize: 4,
+                        onChange: () => {
+                            dispatch(fetchProducts());
+                        }
+                    }}
                 />
 
                 <Modal

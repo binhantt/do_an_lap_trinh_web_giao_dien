@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Image, Space, Tag, Spin, Input, Pagination, Empty } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Image, Space, Tag, Spin, Input, Pagination, Empty, Carousel } from 'antd';
+import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserProducts } from '../../redux/product/productAPI';
 import { fetchUserCategories } from '../../redux/category/categoryAPI';
-import Navbar from '../../components/layout/user/Navbar';
+import LayoutUser from '../../components/layout/user/LayoutUser';
 import { Link } from 'react-router-dom';
+import { formatProductName } from '../../utils/formatters';
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -45,33 +46,44 @@ const Home = () => {
 
     if (loading) {
         return (
-            <>
-                <Navbar />
+            <LayoutUser>
                 <div style={{ textAlign: 'center', padding: '50px' }}>
                     <Spin size="large" />
                 </div>
-            </>
+            </LayoutUser>
         );
     }
 
-    // Add a function to format product name for URL
-    const formatProductName = (name) => {
-        return name.toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/đ/g, 'd')
-            .replace(/Đ/g, 'D')
-            .replace(/\s+/g, '-')
-            .replace(/[^\w-]/g, '');
-    };
-
     return (
-        <div>
-            <Navbar />
-            <div style={{ padding: '24px' }}>
-                <div style={{ marginBottom: '24px', maxWidth: '500px', margin: '0 auto' }}>
+        <LayoutUser>
+            {/* Banner Section */}
+            <Carousel autoplay>
+                <div>
+                    <div style={{ height: '400px', background: '#364d79', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Title level={2} style={{ color: 'white' }}>Chào mừng đến với Đom Đóm Shop</Title>
+                    </div>
+                </div>
+                <div>
+                    <div style={{ height: '400px', background: '#ff6600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Title level={2} style={{ color: 'white' }}>Khuyến mãi đặc biệt</Title>
+                    </div>
+                </div>
+            </Carousel>
+
+            {/* Search Section */}
+            <div style={{ 
+                padding: '24px',
+                background: '#fff8e6',
+                borderBottom: '1px solid #eaeaea'
+            }}>
+                <div style={{ 
+                    maxWidth: '800px',
+                    margin: '0 auto',
+                    textAlign: 'center'
+                }}>
+                    <Title level={2} style={{ marginBottom: '20px' }}>Tìm kiếm sản phẩm</Title>
                     <Search
-                        placeholder="Search products..."
+                        placeholder="Nhập tên sản phẩm..."
                         allowClear
                         enterButton={<SearchOutlined />}
                         size="large"
@@ -81,38 +93,73 @@ const Home = () => {
                         }}
                     />
                 </div>
+            </div>
 
+            {/* Products Section */}
+            <div style={{ 
+                padding: '40px 24px',
+                maxWidth: '1200px',
+                margin: '0 auto'
+            }}>
                 {paginatedGroups.length === 0 ? (
-                    <Empty description="No products found" />
+                    <Empty description="Không tìm thấy sản phẩm" />
                 ) : (
                     paginatedGroups.map(group => (
-                        <div key={group.category.id} style={{ marginBottom: '32px' }}>
-                            <Title level={2}>{group.category.name}</Title>
-                            <Row gutter={[16, 16]}>
+                        <div key={group.category.id} style={{ marginBottom: '40px' }}>
+                            <Title level={2} style={{ 
+                                borderBottom: '2px solid #ff6600',
+                                paddingBottom: '10px',
+                                marginBottom: '20px'
+                            }}>
+                                {group.category.name}
+                            </Title>
+                            <Row gutter={[24, 24]}>
                                 {group.products.map(product => (
                                     <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
                                         <Link to={`/product/${formatProductName(product.name)}`}>
                                             <Card
                                                 hoverable
+                                                style={{ 
+                                                    height: '100%',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                                }}
                                                 cover={
                                                     product.imageUrl && (
                                                         <Image
                                                             alt={product.name}
                                                             src={product.imageUrl}
-                                                            style={{ height: '200px', objectFit: 'cover' }}
+                                                            style={{ 
+                                                                height: '200px',
+                                                                objectFit: 'cover',
+                                                                borderBottom: '1px solid #eaeaea'
+                                                            }}
+                                                            preview={false}
                                                         />
                                                     )
                                                 }
                                             >
                                                 <Meta
-                                                    title={product.name}
+                                                    title={<Text strong style={{ fontSize: '16px' }}>{product.name}</Text>}
                                                     description={
-                                                        <Space direction="vertical">
-                                                            <Text>{product.description}</Text>
-                                                            <Text strong>{product.price.toLocaleString()} VND</Text>
+                                                        <Space direction="vertical" style={{ width: '100%' }}>
+                                                            <Text type="secondary" style={{ 
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                display: '-webkit-box',
+                                                                WebkitLineClamp: 2,
+                                                                WebkitBoxOrient: 'vertical',
+                                                            }}>
+                                                                {product.description}
+                                                            </Text>
+                                                            <Text strong style={{ color: '#ff6600', fontSize: '18px' }}>
+                                                                {product.price.toLocaleString()} VND
+                                                            </Text>
                                                             <Tag color={product.stock > 0 ? 'green' : 'red'}>
-                                                                {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+                                                                {product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng'}
                                                             </Tag>
+                                                            <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                                                                <ShoppingCartOutlined style={{ fontSize: '20px', color: '#ff6600' }} />
+                                                            </div>
                                                         </Space>
                                                     }
                                                 />
@@ -125,7 +172,7 @@ const Home = () => {
                     ))
                 )}
             </div>
-        </div>
+        </LayoutUser>
     );
 };
 

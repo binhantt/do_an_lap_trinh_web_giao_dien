@@ -77,6 +77,8 @@ export const logoutAdmin = () => (dispatch) => {
   dispatch(logout());
 };
 
+
+
 export const loginUser = (credentials) => async (dispatch) => {
     try {
         dispatch(loginStart());
@@ -86,16 +88,16 @@ export const loginUser = (credentials) => async (dispatch) => {
             password: credentials.password
         });
         
+        console.log('API Response:', response.data); // Log the API response
+
+        // Check if login was successful
         if (response.data && response.data.success) {
-            const userData = response.data.data.user;
-            const token = response.data.data.token;
+            const userData = response.data.data;
             
-            if (userData && userData.fullName) {
+            if (userData) {
                 localStorage.setItem('user', JSON.stringify(userData));
-                localStorage.setItem('token', token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 dispatch(loginSuccess(userData));
-                return { success: true, fullName: userData.fullName }; // Return fullName for navigation
+                return { success: true }; // Return success as true
             }
         }
         

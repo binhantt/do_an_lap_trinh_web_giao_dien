@@ -3,11 +3,10 @@ import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-// Update the import
 import { loginUser } from '../../redux/auth/authAPI';
 import Navbar from '../../components/layout/user/Navbar';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
@@ -17,89 +16,106 @@ const Login = () => {
     const onFinish = async (values) => {
         try {
             setLoading(true);
-            const success = await dispatch(loginUser(values));
-            if (success) {
-                message.success('Login successful!');
-                navigate('/Login');
+            const result = await dispatch(loginUser(values));
+            if (result.success) {
+                message.success('Đăng nhập thành công!');
+                navigate('/');
+            } else {
+                message.error('Đăng nhập thất bại. Vui lòng thử lại.');
             }
         } catch (error) {
-            message.error('Login failed. Please try again.');
+            message.error('Đăng nhập thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-       <div>
-         <Navbar />
-        <div style={{
-            minHeight: '90vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            background: '#f0f2f5'
-        }}>
-            <Card style={{ width: 400, padding: '20px' }}>
-                <Title level={2} style={{ textAlign: 'center', marginBottom: 30 }}>
-                    Login
-                </Title>
-                
-                <Form
-                    name="login"
-                    onFinish={onFinish}
-                    layout="vertical"
-                    size="large"
-                >
-                    <Form.Item
-                        name="email"
-                        rules={[
-                            { required: true, message: 'Please input your email!' },
-                            { type: 'email', message: 'Please enter a valid email!' }
-                        ]}
+        <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+            <Navbar />
+            <div style={{
+                minHeight: 'calc(100vh - 120px)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '40px 20px'
+            }}>
+                <Card style={{ 
+                    width: 400, 
+                    padding: '30px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px'
+                }}>
+                    <Title level={2} style={{ 
+                        textAlign: 'center', 
+                        marginBottom: 30,
+                        color: '#ff6600'
+                    }}>
+                        Đăng nhập
+                    </Title>
+                    
+                    <Form
+                        name="login"
+                        onFinish={onFinish}
+                        layout="vertical"
+                        size="large"
                     >
-                        <Input 
-                            prefix={<UserOutlined />} 
-                            placeholder="Email" 
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        name="password"
-                        rules={[
-                            { required: true, message: 'Please input your password!' },
-                            { min: 6, message: 'Password must be at least 6 characters!' }
-                        ]}
-                    >
-                        <Input.Password 
-                            prefix={<LockOutlined />} 
-                            placeholder="Password" 
-                        />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button 
-                            type="primary" 
-                            htmlType="submit" 
-                            block
-                            loading={loading}
+                        <Form.Item
+                            name="email"
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập email!' },
+                                { type: 'email', message: 'Email không hợp lệ!' }
+                            ]}
                         >
-                            Log in
-                        </Button>
-                    </Form.Item>
+                            <Input 
+                                prefix={<UserOutlined style={{ color: '#ff6600' }} />} 
+                                placeholder="Email" 
+                            />
+                        </Form.Item>
 
-                    <div style={{ textAlign: 'center' }}>
-                        Don't have an account? 
-                        <Button 
-                            type="link" 
-                            onClick={() => navigate('/register')}
+                        <Form.Item
+                            name="password"
+                            rules={[
+                                { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                            ]}
                         >
-                            Register now
-                        </Button>
-                    </div>
-                </Form>
-            </Card>
+                            <Input.Password 
+                                prefix={<LockOutlined style={{ color: '#ff6600' }} />} 
+                                placeholder="Mật khẩu" 
+                            />
+                        </Form.Item>
+
+                        <Form.Item>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit" 
+                                block
+                                loading={loading}
+                                style={{ 
+                                    backgroundColor: '#ff6600',
+                                    height: '40px',
+                                    fontSize: '16px'
+                                }}
+                            >
+                                Đăng nhập
+                            </Button>
+                        </Form.Item>
+
+                        <div style={{ textAlign: 'center' }}>
+                            <Text type="secondary">Chưa có tài khoản? </Text>
+                            <Button 
+                                type="link" 
+                                onClick={() => navigate('/register')}
+                                style={{ color: '#ff6600', fontWeight: 'bold' }}
+                            >
+                                Đăng ký ngay
+                            </Button>
+                        </div>
+                    </Form>
+                </Card>
+            </div>
         </div>
-       </div>
     );
 };
 

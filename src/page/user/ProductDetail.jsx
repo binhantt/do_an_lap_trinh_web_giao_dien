@@ -1,40 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Card, Row, Col, Typography, Image, Space, Tag, Button, InputNumber, Descriptions, Input, message } from 'antd';
-import { ShoppingCartOutlined, LoginOutlined } from '@ant-design/icons';
-import Navbar from '../../components/layout/user/Navbar';
+import { 
+    Card, Row, Col, Typography, Image, Space, Tag, Button, InputNumber, 
+    Breadcrumb, Form, Input, message, Divider, Rate, Alert 
+} from 'antd';
+import { 
+    ShoppingCartOutlined, 
+    HeartOutlined,
+    HomeOutlined,
+    ShopOutlined,
+    PhoneOutlined,
+    EnvironmentOutlined
+} from '@ant-design/icons';
+import LayoutUser from '../../components/layout/user/LayoutUser';
 import { createOrder } from '../../redux/order/orderAPI';
 import { fetchUserProducts } from '../../redux/product/productAPI';
-import { Modal } from 'antd'; // Import Modal from Ant Design
+import { formatProductName } from '../../utils/formatters';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const ProductDetail = () => {
     const { productname } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [quantity, setQuantity] = useState(1);
-    const [shippingAddress, setShippingAddress] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [form] = Form.useForm();
 
     useEffect(() => {
         dispatch(fetchUserProducts());
-    }, [dispatch]);
-    console.log(productname);
+    }, []); // Remove dispatch from dependency array as it's stable
+
     const formatProductName = (name) => {
         return name.toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
             .replace(/đ/g, 'd')
             .replace(/Đ/g, 'D')
-            .replace(/\s+/g, '-')
-            .replace(/[^\w-]/g, '');
+            .replace(/\s+/g, '-');
     };
 
     const product = useSelector(state =>
-        state.product.products.find(p =>
-            formatProductName(p.name) === productname
+        state.product.products.find(p => 
+            p.name && formatProductName(p.name) === productname
         )
     );
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
@@ -45,150 +53,203 @@ const ProductDetail = () => {
 
     if (!product) {
         return (
-            <>
-                <Navbar />
-                <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <Text>Product not found</Text>
+            <LayoutUser>
+                <div style={{ padding: '50px' }}>
+                    <Alert
+                        message="Không tìm thấy sản phẩm"
+                        description="Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+                        type="error"
+                        showIcon
+                    />
                 </div>
-            </>
+            </LayoutUser>
         );
     }
 
-    const handleAddToCart = async () => {
-        if (!isAuthenticated) {
-            message.warning('Please login to add items to cart');
-            navigate('/login');
-            return;
-        }
-
-        if (product.stock < quantity) {
-            message.error('Not enough stock available');
-            return;
-        }
-
-        if (!shippingAddress || !phoneNumber) {
-            message.error('Please provide shipping address and phone number');
-            return;
-        }
-
-        Modal.confirm({
-            title: 'Confirm Purchase',
-            content: 'Do you want to purchase this product?',
-            onOk: async () => {
-                const orderData = {
-                    userId: user.id,
-                    orderDate: new Date().toISOString(),
-                    status: 'Pending',
-                    totalAmount: product.price * quantity,
-                    shippingAddress,
-                    phoneNumber,
-                    paymentMethod: 'COD',
-                    paymentStatus: 'Pending',
-                    orderDetails: [
-                        {
-                            ProductId: product.id,
-                            quantity,
-                            Price: product.price
-                        }
-                    ]
-                };
-
-                const result = await dispatch(createOrder(orderData));
-
-                if (result) {
-                    message.success('Order created successfully');
-                } else {
-                    message.error('Failed to create order');
-                }
-            }
-        });
-    };
-
     return (
-        <div>
-            <Navbar />
-            <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
-                <Card>
-                    <Row gutter={[32, 32]}>
+        <LayoutUser>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px 16px' }}>
+                <Breadcrumb style={{ marginBottom: '16px' }}>
+                    <Breadcrumb.Item href="/">
+                        <HomeOutlined /> Trang chủ
+                    </Breadcrumb.Item>
+                    <Breadcrumb.Item href={`/category/${formatProductName(category?.name)}`}>
+                        <ShopOutlined /> {category?.name}
+                    </Breadcrumb.Item>
+                    <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
+                </Breadcrumb>
+
+                <Card bodyStyle={{ padding: '32px' }}>
+                    <Row gutter={[64, 32]}>
                         <Col xs={24} md={12}>
-                            {product.imageUrl && (
-                                <Image
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    style={{ width: '100%', maxHeight: 500, objectFit: 'cover' }}
-                                />
-                            )}
+                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                                <div style={{ 
+                                    position: 'sticky',
+                                    top: '24px'
+                                }}>
+                                    <Image
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        style={{
+                                            width: '100%',
+                                            borderRadius: '8px',
+                                            maxHeight: '500px',
+                                            objectFit: 'contain'
+                                        }}
+                                    />
+                                    
+                                    <Card style={{ marginTop: '24px' }}>
+                                        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                            <Title level={4}>Thông tin sản phẩm</Title>
+                                            <div>
+                                                <Text strong>Thương hiệu:</Text>
+                                                <Text> {product.brand || 'Apple'}</Text>
+                                            </div>
+                                            <div>
+                                                <Text strong>Danh mục:</Text>
+                                                <Text> {category?.name}</Text>
+                                            </div>
+                                            <div>
+                                                <Text strong>Tình trạng:</Text>
+                                                <Text> {product.stock > 0 ? 'Còn hàng' : 'Hết hàng'}</Text>
+                                            </div>
+                                            <div>
+                                                <Text strong>Mã sản phẩm:</Text>
+                                                <Text> {product.id}</Text>
+                                            </div>
+                                        </Space>
+                                    </Card>
+
+                                    <Card style={{ marginTop: '24px' }}>
+                                        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                            <Title level={4}>Chính sách bán hàng</Title>
+                                            <div>
+                                                <Text>✓ Cam kết chính hãng 100%</Text>
+                                            </div>
+                                            <div>
+                                                <Text>✓ Miễn phí giao hàng toàn quốc</Text>
+                                            </div>
+                                            <div>
+                                                <Text>✓ Đổi trả trong vòng 7 ngày</Text>
+                                            </div>
+                                            <div>
+                                                <Text>✓ Bảo hành 12 tháng chính hãng</Text>
+                                            </div>
+                                        </Space>
+                                    </Card>
+                                </div>
+                            </Space>
                         </Col>
                         <Col xs={24} md={12}>
                             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                                <Title level={2}>{product.name}</Title>
-                                <Text>{product.description}</Text>
-                                <Title level={3}>{product.price.toLocaleString()} VND</Title>
+                                <div>
+                                    <Title level={2} style={{ 
+                                        marginBottom: '8px',
+                                        fontSize: '28px'
+                                    }}>{product.name}</Title>
+                                    <Rate disabled defaultValue={4.5} style={{ color: '#ff6600' }} />
+                                </div>
 
-                                <Space>
-                                    <Text>Quantity:</Text>
-                                    <InputNumber
-                                        min={1}
-                                        max={product.stock}
-                                        value={quantity}
-                                        onChange={setQuantity}
-                                        disabled={!isAuthenticated || product.stock === 0}
-                                    />
+                                <Title level={2} style={{ 
+                                    color: '#ff6600', 
+                                    margin: '16px 0',
+                                    fontSize: '32px'
+                                }}>
+                                    {product.price.toLocaleString()} VND
+                                </Title>
+
+                                <Paragraph style={{ 
+                                    fontSize: '16px',
+                                    lineHeight: '1.8'
+                                }}>{product.description}</Paragraph>
+
+                                <Divider />
+
+                                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                        <Text strong style={{ fontSize: '16px' }}>Số lượng:</Text>
+                                        <InputNumber
+                                            min={1}
+                                            max={product.stock}
+                                            value={quantity}
+                                            onChange={setQuantity}
+                                            style={{ width: '120px' }}
+                                            size="large"
+                                        />
+                                    </div>
+
+                                    <Tag color={product.stock > 0 ? 'success' : 'error'} style={{ padding: '4px 12px', fontSize: '14px' }}>
+                                        {product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng'}
+                                    </Tag>
                                 </Space>
 
-                                <Input
-                                    placeholder="Enter shipping address"
-                                    value={shippingAddress}
-                                    onChange={(e) => setShippingAddress(e.target.value)}
-                                />
-
-                                <Input
-                                    placeholder="Enter phone number"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                />
-
-                                <Tag color={product.stock > 0 ? 'green' : 'red'} style={{ fontSize: '16px' }}>
-                                    {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
-                                </Tag>
-
-                                {isAuthenticated ? (
-                                    <Button
-                                        type="primary"
-                                        size="large"
-                                        icon={<ShoppingCartOutlined />}
-                                        onClick={handleAddToCart}
-                                        disabled={product.stock === 0}
-                                        style={{ width: '200px' }}
+                                <Form
+                                    form={form}
+                                    layout="vertical"
+                                    onFinish={handleAddToCart}
+                                    style={{ marginTop: '24px' }}
+                                >
+                                    <Form.Item
+                                        name="shippingAddress"
+                                        rules={[{ required: true, message: 'Vui lòng nhập địa chỉ giao hàng' }]}
                                     >
-                                        mua san pham
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        type="primary"
-                                        size="large"
-                                        icon={<LoginOutlined />}
-                                        onClick={() => navigate('/login')}
-                                        style={{ width: '200px' }}
-                                    >
-                                        Login to Purchase
-                                    </Button>
-                                )}
+                                        <Input 
+                                            prefix={<EnvironmentOutlined />} 
+                                            placeholder="Địa chỉ giao hàng"
+                                            size="large"
+                                            disabled={!isAuthenticated}
+                                        />
+                                    </Form.Item>
 
-                                <Descriptions bordered column={1}>
-                                    <Descriptions.Item label="Category">
-                                        {category?.name}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Product Code">
-                                        {product.id}
-                                    </Descriptions.Item>
-                                </Descriptions>
+                                    <Form.Item
+                                        name="phoneNumber"
+                                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+                                    >
+                                        <Input 
+                                            prefix={<PhoneOutlined />} 
+                                            placeholder="Số điện thoại"
+                                            size="large"
+                                            disabled={!isAuthenticated}
+                                        />
+                                    </Form.Item>
+
+                                    <Space size="middle" style={{ marginTop: '16px' }}>
+                                        <Button
+                                            type="primary"
+                                            size="large"
+                                            icon={<ShoppingCartOutlined />}
+                                            htmlType="submit"
+                                            disabled={!isAuthenticated || product.stock === 0}
+                                            onClick={() => !isAuthenticated && message.warning('Vui lòng đăng nhập để mua hàng')}
+                                            style={{ 
+                                                backgroundColor: '#ff6600',
+                                                borderColor: '#ff6600',
+                                                height: '48px',
+                                                padding: '0 32px',
+                                                fontSize: '16px'
+                                            }}
+                                        >
+                                            {isAuthenticated ? 'Mua ngay' : 'Đăng nhập để mua hàng'}
+                                        </Button>
+                                        <Button
+                                            size="large"
+                                            icon={<HeartOutlined />}
+                                            style={{
+                                                height: '48px',
+                                                padding: '0 32px',
+                                                fontSize: '16px'
+                                            }}
+                                        >
+                                            Yêu thích
+                                        </Button>
+                                    </Space>
+                                </Form>
                             </Space>
                         </Col>
                     </Row>
                 </Card>
             </div>
-        </div>
+        </LayoutUser>
     );
 };
 

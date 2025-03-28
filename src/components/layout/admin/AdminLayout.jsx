@@ -15,7 +15,7 @@ const AdminLayout = ({ children }) => {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <Layout>
         <Navbar user={user} />
-        <Content className="m-6 bg-white p-6 rounded shadow-sm">
+        <Content  className="m-0 p-4 overflow-auto" style={{ height: 'calc(100vh - 64px)' , padding : "2rem"}}>
           {children}
         </Content>
       </Layout>

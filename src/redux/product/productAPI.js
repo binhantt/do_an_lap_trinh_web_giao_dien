@@ -3,7 +3,8 @@ import api from '../../config/api';
 import {
   fetchProductsStart,
   fetchProductsSuccess,
-  fetchProductsFailure
+  fetchProductsFailure,
+  createProductSuccess  // Add this import
 } from './productSlice';
 
 // Fetch products for user
@@ -57,7 +58,16 @@ export const fetchProducts = () => async (dispatch) => {
 // Create a new product
 export const createProduct = (productData) => async (dispatch) => {
   try {
-    const response = await axios.post(`${api.api}/api/admin/v1/product`, productData);
+    const transformedData = {
+      name: productData.name,
+      description: productData.description,
+      price: parseFloat(productData.price),
+      stock: parseInt(productData.stock),
+      imageUrl: productData.imageUrl,
+      categoryId: parseInt(productData.categoryId)
+    };
+
+    const response = await axios.post(`${api.api}/api/v1/admin/products`, transformedData);
     
     console.log('Create product response:', response.data);
     
@@ -129,7 +139,7 @@ export const deleteProduct = (id) => async (dispatch) => {
   try {
     console.log('Deleting product with ID:', id);
     
-    const response = await axios.delete(`${api.api}/api/v1/admin/products/${id}`);
+    const response = await axios.delete(`${api.api}/api/v1/admin/manage-product/${id}`);
     
     console.log('Delete product response:', response.data);
     

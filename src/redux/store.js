@@ -5,7 +5,6 @@ import usersReducer from './user/userSlice';
 import productReducer from './product/productSlice';
 import orderReducer from './order/orderSlice';
 
-
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -13,7 +12,6 @@ export const store = configureStore({
     users: usersReducer,
     product: productReducer,
     order: orderReducer,
-   
   },
 });
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Typography, Descriptions, Table, Tag, Space, Button } from 'antd';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Navbar from '../../components/layout/user/Navbar';
+import LayoutUser from '../../components/layout/user/LayoutUser';
 
 const { Title } = Typography;
 
@@ -14,7 +14,7 @@ const OrderDetailPage = () => {
 
     const columns = [
         {
-            title: 'Product',
+            title: 'Sản phẩm',
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => (
@@ -29,60 +29,59 @@ const OrderDetailPage = () => {
             ),
         },
         {
-            title: 'Price',
+            title: 'Giá',
             dataIndex: 'price',
             key: 'price',
             render: price => `${price.toLocaleString()} VND`,
         },
         {
-            title: 'Quantity',
+            title: 'Số lượng',
             dataIndex: 'quantity',
             key: 'quantity',
         },
         {
-            title: 'Total',
+            title: 'Tổng tiền',
             key: 'total',
             render: (_, record) => `${(record.price * record.quantity).toLocaleString()} VND`,
         },
     ];
 
     return (
-        <div>
-            <Navbar />
+        <LayoutUser>
             <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
                 <Card>
-                    <Title level={2}>Order Details #{orderId}</Title>
+                    <Title level={2}>Chi tiết đơn hàng #{orderId}</Title>
                     
-                    <Descriptions title="Order Information" bordered>
-                        <Descriptions.Item label="Order Date">
+                    <Descriptions title="Thông tin đơn hàng" bordered>
+                        <Descriptions.Item label="Ngày đặt hàng">
                             {new Date(order?.orderDate).toLocaleDateString()}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Status">
+                        <Descriptions.Item label="Trạng thái">
                             <Tag color={order?.status === 'Completed' ? 'green' : 'blue'}>
-                                {order?.status}
+                                {order?.status === 'Completed' ? 'Hoàn thành' : 'Đang xử lý'}
                             </Tag>
                         </Descriptions.Item>
-                        <Descriptions.Item label="Total Amount">
+                        <Descriptions.Item label="Tổng tiền">
                             {order?.totalAmount?.toLocaleString()} VND
                         </Descriptions.Item>
                     </Descriptions>
 
-                    <Descriptions title="Shipping Information" bordered style={{ marginTop: 24 }}>
-                        <Descriptions.Item label="Full Name">
+                    <Descriptions title="Thông tin giao hàng" bordered style={{ marginTop: 24 }}>
+                        <Descriptions.Item label="Họ và tên">
                             {order?.shippingDetails?.fullName}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Phone">
+                        <Descriptions.Item label="Số điện thoại">
                             {order?.shippingDetails?.phone}
                         </Descriptions.Item>
                         <Descriptions.Item label="Email">
                             {order?.shippingDetails?.email}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Address" span={3}>
+                        <Descriptions.Item label="Địa chỉ" span={3}>
                             {order?.shippingDetails?.address}
                         </Descriptions.Item>
                     </Descriptions>
 
-                    <Title level={4} style={{ marginTop: 24 }}>Order Items</Title>
+                    <Title level={4} style={{ marginTop: 24 }}>Danh sách sản phẩm</Title>
                     <Table 
                         columns={columns} 
                         dataSource={order?.items} 
@@ -93,14 +92,14 @@ const OrderDetailPage = () => {
                     <div style={{ marginTop: 24, textAlign: 'right' }}>
                         <Space>
                             <Link to="/orders">
-                                <Button>Back to Orders</Button>
+                                <Button>Quay lại</Button>
                             </Link>
-                            <Button type="primary">Download Invoice</Button>
+                            <Button type="primary">Tải hóa đơn</Button>
                         </Space>
                     </div>
                 </Card>
             </div>
-        </div>
+        </LayoutUser>
     );
 };
 
